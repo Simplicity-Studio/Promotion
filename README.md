@@ -1,2 +1,2 @@
-# RecruitmentPromotion
+# Promotion
 Recruitment Promotion Pages
