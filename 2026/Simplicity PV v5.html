@@ -1,0 +1,2588 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simplicity Studio — 宣传片暨招新企划</title>
+<style>
+:root {
+  --bg-0: #ffffff;
+  --bg-1: #f2faff;
+  --bg-2: #e2f3ff;
+  --primary: #00b3ff;
+  --primary-l: #38c8ff;
+  --primary-d: #007ec2;
+  --accent: #00e1ff;
+  --ink-900: #0a2239;
+  --ink-700: #163a5f;
+  --ink-500: #3b6285;
+  --ink-400: #5c82a6;
+  /* Translucent Neumorphic 3D Liquid Glass: lets background 3D sculptures shine through while keeping text crisp */
+  --glass-bg: rgba(255, 255, 255, 0.64);
+  --glass-strong: rgba(255, 255, 255, 0.82);
+  --glass-border: rgba(0, 179, 255, 0.25);
+  --neo-shadow:
+    16px 24px 48px rgba(0, 115, 185, 0.085),
+    -10px -10px 28px rgba(255, 255, 255, 0.94),
+    inset 0 1.5px 2.5px rgba(255, 255, 255, 0.98),
+    inset 0 -1.5px 3px rgba(0, 179, 255, 0.10);
+  --neo-shadow-sm:
+    8px 12px 24px rgba(0, 115, 185, 0.065),
+    -6px -6px 16px rgba(255, 255, 255, 0.94),
+    inset 0 1px 1.5px rgba(255, 255, 255, 0.96);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+html, body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 38%, #ffffff 0%, #f2faff 54%, #e1f3ff 100%);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  color: var(--ink-900);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* === FULLSCREEN 3D SCULPTURAL BACKGROUND CANVAS === */
+#bg-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.ambient-vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 50%, transparent 60%, rgba(0, 179, 255, 0.055) 100%),
+    linear-gradient(180deg, rgba(255,255,255,0.28) 0%, transparent 14%, transparent 86%, rgba(235,248,255,0.40) 100%);
+}
+
+/* === SUBTLE TOP-LEFT & TOP-RIGHT HUD WATERMARK (NO VIDEO CONTROLS) === */
+.hud-header {
+  position: fixed;
+  top: 22px;
+  left: 32px;
+  right: 32px;
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.hud-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 179, 255, 0.22);
+  box-shadow: var(--neo-shadow-sm);
+}
+
+.hud-brand-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  box-shadow: 0 0 10px rgba(0, 179, 255, 0.75);
+}
+
+.hud-brand-text {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  color: var(--primary-d);
+  white-space: nowrap;
+}
+
+.hud-act-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 179, 255, 0.22);
+  box-shadow: var(--neo-shadow-sm);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+  color: var(--primary-d);
+  white-space: nowrap;
+}
+
+/* === 3D VIEWPORT & CAMERA RIG === */
+#viewport {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  perspective: 1380px;
+  perspective-origin: 50% 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+#camera-rig {
+  position: relative;
+  width: 1200px;
+  height: 680px;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.act-scene {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.free-float-3d {
+  position: absolute;
+  transform-style: preserve-3d;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* === NEUMORPHIC 3D LIQUID GLASS WINDOW BASE === */
+.neo-win {
+  position: absolute;
+  background: var(--glass-bg);
+  backdrop-filter: blur(11px) saturate(1.4);
+  -webkit-backdrop-filter: blur(11px) saturate(1.4);
+  border-radius: 24px;
+  border: 1.5px solid var(--glass-border);
+  box-shadow: var(--neo-shadow);
+  transform-style: preserve-3d;
+  overflow: hidden;
+  will-change: transform, opacity;
+}
+
+.neo-win::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.78) 0%,
+    rgba(255, 255, 255, 0.18) 38%,
+    rgba(0, 179, 255, 0.04) 75%,
+    rgba(0, 225, 255, 0.16) 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.neo-win::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 12%;
+  width: 76%;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(90deg, transparent, var(--primary), var(--accent), transparent);
+  opacity: 0.88;
+  z-index: 2;
+}
+
+.win-bar {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 18px;
+  border-bottom: 1px solid rgba(0, 179, 255, 0.13);
+  background: linear-gradient(90deg, rgba(255,255,255,0.68), rgba(235,248,255,0.48));
+}
+
+.win-dots {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.win-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.win-dots span:nth-child(1) { background: #00b3ff; opacity: 0.9; }
+.win-dots span:nth-child(2) { background: #38c8ff; opacity: 0.8; }
+.win-dots span:nth-child(3) { background: #93e2ff; opacity: 0.8; }
+
+.win-title {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+  color: var(--primary-d);
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.win-badge {
+  font-size: 0.64rem;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 99px;
+  background: rgba(0, 179, 255, 0.11);
+  color: var(--primary-d);
+  border: 1px solid rgba(0, 179, 255, 0.24);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.win-body {
+  position: relative;
+  z-index: 2;
+  padding: 18px 22px;
+}
+
+/* === TYPOGRAPHY HELPERS === */
+.grad-text {
+  background: linear-gradient(135deg, var(--primary-d) 0%, var(--primary) 52%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.pill-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 13px;
+  border-radius: 999px;
+  background: rgba(0, 179, 255, 0.09);
+  border: 1px solid rgba(0, 179, 255, 0.22);
+  color: var(--primary-d);
+  font-size: 0.71rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* === CINEMATIC SUBTITLE BAR AT BOTTOM === */
+.subtitle-dock {
+  position: fixed;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 16;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+  width: min(92vw, 860px);
+}
+
+.subtitle-glass {
+  padding: 10px 28px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(16px) saturate(1.5);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  border: 1px solid rgba(0, 179, 255, 0.22);
+  box-shadow: var(--neo-shadow-sm);
+  text-align: center;
+}
+
+.subtitle-main {
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--ink-900);
+}
+
+.subtitle-sub {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--primary);
+  margin-top: 2px;
+}
+
+/* === ACT 1 SPECIFIC STYLES (FREE-FLOATING LOGO + 3 ORBITING CHIPS) === */
+.act1-free-center {
+  width: 900px;
+  left: 150px;
+  top: 250px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.logo-stage {
+  position: relative;
+  width: 100%;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.simplicity-svg {
+  width: 90%;
+  height: auto;
+  overflow: visible;
+  filter:
+    drop-shadow(0 16px 32px rgba(0, 179, 255, 0.32))
+    drop-shadow(0 4px 10px rgba(0, 126, 194, 0.18))
+    drop-shadow(-4px -4px 12px rgba(255, 255, 255, 0.98));
+}
+
+.shard-path {
+  transform-origin: center center;
+  transform-box: fill-box;
+  will-change: transform, opacity;
+}
+
+.act1-chip-win {
+  width: 270px;
+  padding: 15px 20px;
+  border-radius: 20px;
+}
+
+/* === ACT 2 SPECIFIC STYLES (COMPLETE 3-WINDOW SPREAD) === */
+.act2-main-win {
+  width: 540px;
+  height: 380px;
+  left: 330px;
+  top: 175px;
+}
+
+.act2-left-win {
+  width: 320px;
+  height: 350px;
+  left: -10px;
+  top: 192px;
+}
+
+.act2-right-win {
+  width: 310px;
+  height: 350px;
+  left: 890px;
+  top: 192px;
+}
+
+.quote-box {
+  margin-top: 14px;
+  padding: 15px 18px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(0,179,255,0.09), rgba(0,225,255,0.04));
+  border-left: 4px solid var(--primary);
+  font-size: 0.85rem;
+  line-height: 1.75;
+  color: var(--ink-700);
+  font-weight: 500;
+}
+
+.metric-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(0, 179, 255, 0.15);
+  margin-bottom: 10px;
+  box-shadow: inset 1px 1px 3px rgba(255,255,255,0.9);
+}
+
+/* === ACT 3 SPECIFIC STYLES (COMPLETE 5-WINDOW PROJECT MATRIX) === */
+.proj-win {
+  width: 350px;
+  height: 270px;
+}
+
+.proj-canvas-wrap {
+  width: 100%;
+  height: 108px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #06223d, #005082);
+  position: relative;
+  margin-bottom: 10px;
+  border: 1px solid rgba(0, 179, 255, 0.28);
+}
+
+.proj-canvas-wrap.light-mode {
+  background: linear-gradient(135deg, #dcf3ff 0%, #f0faff 100%);
+}
+
+/* === ACT 4 SPECIFIC STYLES (COMPLETE 3-WINDOW BENTO: IP, OPEN SOURCE, 6-MEMBER TEAM) === */
+.bento-ip-win {
+  width: 470px;
+  height: 295px;
+  left: 15px;
+  top: 55px;
+}
+
+.bento-oss-win {
+  width: 470px;
+  height: 265px;
+  left: 15px;
+  top: 370px;
+}
+
+.bento-team-win {
+  width: 670px;
+  height: 580px;
+  left: 510px;
+  top: 55px;
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.member-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(0, 179, 255, 0.16);
+  box-shadow: var(--neo-shadow-sm);
+}
+
+.member-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  box-shadow: 0 6px 14px rgba(0, 179, 255, 0.28);
+}
+
+/* === ACT 5 SPECIFIC STYLES (COMPLETE 3-WINDOW RECRUITMENT CENTER) === */
+.rec-center-win {
+  width: 480px;
+  height: 490px;
+  left: 360px;
+  top: 85px;
+}
+
+.rec-left-win {
+  width: 335px;
+  height: 450px;
+  left: 5px;
+  top: 105px;
+}
+
+.rec-right-win {
+  width: 335px;
+  height: 450px;
+  left: 860px;
+  top: 105px;
+}
+
+.tier-box {
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(0, 179, 255, 0.16);
+  margin-bottom: 12px;
+  box-shadow: var(--neo-shadow-sm);
+}
+
+/* === ACT 6 SPECIFIC STYLES (FREE-FLOATING FINALE LOGO + 3 CTA DOCKS + 4 SATELLITES) === */
+.finale-free-hero {
+  width: 880px;
+  left: 160px;
+  top: 165px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.finale-cta-row {
+  position: absolute;
+  width: 900px;
+  left: 150px;
+  top: 415px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  transform-style: preserve-3d;
+}
+
+.finale-sat-chip {
+  width: 235px;
+  padding: 13px 16px;
+  border-radius: 18px;
+}
+
+.cta-glass-card {
+  padding: 18px 16px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.74);
+  backdrop-filter: blur(14px) saturate(1.45);
+  -webkit-backdrop-filter: blur(14px) saturate(1.45);
+  border: 1.5px solid rgba(0, 179, 255, 0.25);
+  box-shadow: var(--neo-shadow);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transform-style: preserve-3d;
+}
+
+.cta-glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3.5px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+}
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<div class="ambient-vignette"></div>
+
+<!-- Minimalist Ambient Brand Header (Zero Playback Controls) -->
+<header class="hud-header">
+  <div class="hud-brand">
+    <span class="hud-brand-dot"></span>
+    <span class="hud-brand-text">SIMPLICITY STUDIO · 2021 — 2026</span>
+  </div>
+  <div class="hud-act-pill" id="hud-act-label">ACT I · 破界而生</div>
+</header>
+
+<!-- 3D Foreground Stage ("一镜到底" Camera Rig) -->
+<div id="viewport">
+  <div id="camera-rig">
+
+    <!-- =========================================================
+         ACT I (0.0s - 6.2s): 破界而生 · 极简降临
+         Background Sculpture: Upper-Sky 3D Origami Prism Crown & 16 Orbiting Tetrahedra
+         Foreground: Free-Floating 3D Logo & Slogan + 3 Orbiting Glass Micro-Windows
+         ========================================================= -->
+    <section class="act-scene" id="act-1">
+      <div class="free-float-3d act1-free-center" id="a1-main">
+        <div class="pill-tag" style="margin-bottom:12px;background:rgba(255,255,255,0.84);box-shadow:var(--neo-shadow-sm);padding:6px 18px;font-size:0.75rem;">
+          ✦ SCRATCH INDIE GAME STUDIO · 极简美学独立游戏工作室
+        </div>
+        <div class="logo-stage">
+          <svg class="simplicity-svg" id="intro-logo-svg" viewBox="0 0 423.193 40" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="shardGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#007ec2"/>
+                <stop offset="50%" stop-color="#00b3ff"/>
+                <stop offset="100%" stop-color="#00e1ff"/>
+              </linearGradient>
+              <linearGradient id="shardGrad2" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#00b3ff"/>
+                <stop offset="100%" stop-color="#6ce8ff"/>
+              </linearGradient>
+            </defs>
+            <g transform="translate(-28.4035 -160)">
+              <path class="shard-path" fill="url(#shardGrad1)" d="M28.4036 167.935 68.0187 160.012 40.3417 171.926 44.2496 183.781Z"/>
+              <path class="shard-path" fill="url(#shardGrad2)" d="M68.0187 191.704 28.4035 199.627 56.0805 187.714 52.1726 175.858Z"/>
+              <path class="shard-path" fill="url(#shardGrad1)" d="M85.5964 200 83.5964 160 91.5964 168Z"/>
+              <path class="shard-path" fill="url(#shardGrad2)" d="M107.751 199.627 115.674 160.012 115.674 191.704Z"/>
+              <path class="shard-path" fill="url(#shardGrad1)" d="M123.597 199.627 127.558 183.781 131.52 199.627Z"/>
+              <path class="shard-path" fill="url(#shardGrad2)" d="M139.443 191.704 139.443 160.012 147.366 199.627Z"/>
+              <path class="shard-path" fill="url(#shardGrad1)" d="M163.742 168.242 163.742 199.758 155.839 160.242Z"/>
+              <path class="shard-path" fill="url(#shardGrad2)" d="M171.645 184.039 182.36 172.223 167.645 160.242 195.354 172.223Z"/>
+              <path class="shard-path" fill="url(#shardGrad1)" d="M205.596 200 205.596 160 213.596 168Z"/>
+              <path class="shard-path" fill="url(#shardGrad2)" d="M215.596 192 245.596 192 211.596 200Z"/>
+              <path class="shard-path" fill="url(#shardGrad1)" d="M261.596 200 259.596 160 267.596 168Z"/>
+              <path class="shard-path" fill="url(#shardGrad2)" d="M283.677 189.389 283.677 170.73 291.555 180.151Z"/>
+              <path class="shard-path" fill="url(#shardGrad1)" d="M323.563 168.744 302.004 168.744 295.286 160.367Z"/>
+              <path class="shard-path" fill="url(#shardGrad2)" d="M323.563 191.375 295.286 199.752 302.004 191.375Z"/>
+              <path class="shard-path" fill="url(#shardGrad1)" d="M341.596 200 339.596 160 347.596 168Z"/>
+              <path class="shard-path" fill="url(#shardGrad2)" d="M403.396 167.935 363.781 167.935 367.743 160.012Z"/>
+              <path class="shard-path" fill="url(#shardGrad1)" d="M379.628 199.627 379.628 175.858 387.551 175.858Z"/>
+              <path class="shard-path" fill="url(#shardGrad2)" d="M425.596 168 427.596 184 411.596 160Z"/>
+              <path class="shard-path" fill="url(#shardGrad1)" d="M451.596 160 429.596 200 439.596 166Z"/>
+            </g>
+          </svg>
+        </div>
+        <div class="grad-text" style="font-size:1.52rem;font-weight:900;letter-spacing:12px;margin-top:6px;text-shadow:0 8px 24px rgba(0,179,255,0.18);">
+          简约至上 · 极致创作 · 赋能未来
+        </div>
+      </div>
+
+      <!-- 3 Orbiting 3D Glass Micro-Windows -->
+      <div class="neo-win act1-chip-win" id="a1-chip1" style="left:45px;top:62px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#00b3ff,#00e1ff);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:1.1rem;flex-shrink:0;">01</div>
+          <div>
+            <div style="font-size:0.7rem;color:var(--primary-d);font-weight:700;letter-spacing:1px;">FOUNDED</div>
+            <div style="font-size:0.95rem;font-weight:800;color:var(--ink-900);">创立于 2021.01.25</div>
+            <div style="font-size:0.72rem;color:var(--ink-500);">五年深耕 · 简约风标杆</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="neo-win act1-chip-win" id="a1-chip2" style="left:885px;top:68px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#007ec2,#00b3ff);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:1.1rem;flex-shrink:0;">15+</div>
+          <div>
+            <div style="font-size:0.7rem;color:var(--primary-d);font-weight:700;letter-spacing:1px;">EXCELLENCE</div>
+            <div style="font-size:0.95rem;font-weight:800;color:var(--ink-900);">首年 15+ 社区精选</div>
+            <div style="font-size:0.72rem;color:var(--ink-500);">共创世界 · 稽木世界 · 小码王</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="neo-win act1-chip-win" id="a1-chip3" style="left:465px;top:515px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#00d9ff,#00b3ff);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:1.1rem;flex-shrink:0;">∞</div>
+          <div>
+            <div style="font-size:0.7rem;color:var(--primary-d);font-weight:700;letter-spacing:1px;">VISION</div>
+            <div style="font-size:0.95rem;font-weight:800;color:var(--ink-900);">极简美学赋能创作者</div>
+            <div style="font-size:0.72rem;color:var(--ink-500);">开放自由 · 互帮互助共创群落</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         ACT II (6.2s - 12.5s): PHILOSOPHY · 大道至简，美学与哲思
+         Background Sculpture: Left Nested Tesseract Cube -> Parabolic Arch -> Right Pure Ring
+         Foreground: All 3 Complete v2 Windows (Left UI Evolution, Center Manifesto, Right Metrics)
+         ========================================================= -->
+    <section class="act-scene" id="act-2">
+      <!-- Left Window: Aesthetic Evolution Visualizer -->
+      <div class="neo-win act2-left-win" id="a2-left">
+        <div class="win-bar">
+          <div class="win-dots"><span></span><span></span><span></span></div>
+          <div class="win-title">UI_EVOLUTION // WIN11</div>
+          <div class="win-badge">美学演进</div>
+        </div>
+        <div class="win-body">
+          <div class="pill-tag" style="margin-bottom:10px;">◎ 美学简约 · 视觉进化</div>
+          <h4 style="font-size:1.05rem;font-weight:800;color:var(--ink-900);margin-bottom:8px;">从繁复光影到纯粹色块</h4>
+          <canvas id="ui-evo-canvas" width="276" height="128" style="width:100%;height:128px;border-radius:14px;background:rgba(235,248,255,0.78);border:1px solid rgba(0,179,255,0.16);margin-bottom:10px;"></canvas>
+          <p style="font-size:0.78rem;line-height:1.68;color:var(--ink-500);">
+            从 Win7 拟物渐变到 Win11 圆滑色块，从具象向导到抽象符号——<strong style="color:var(--primary-d);">最好的设计，是让人感受不到设计本身的存在。</strong>
+          </p>
+        </div>
+      </div>
+
+      <!-- Center Window: Philosophical Manifesto -->
+      <div class="neo-win act2-main-win" id="a2-center">
+        <div class="win-bar">
+          <div class="win-dots"><span></span><span></span><span></span></div>
+          <div class="win-title">PHILOSOPHY // CORE_MANIFESTO</div>
+          <div class="win-badge">大道至简</div>
+        </div>
+        <div class="win-body">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <span class="pill-tag">✦ 团队文化 · 哲思涵义</span>
+            <span style="font-size:0.72rem;font-weight:700;color:var(--primary-d);">SIMPLICITY ETHOS</span>
+          </div>
+          <h2 class="grad-text" style="font-size:2rem;font-weight:900;margin:12px 0 6px;letter-spacing:1px;">
+            化繁为简 · 一针见血
+          </h2>
+          <p style="font-size:0.84rem;color:var(--ink-500);line-height:1.75;">
+            我们擅长构建极具辨识度的<strong style="color:var(--primary-d);">极简风 UI</strong> 与富有<strong style="color:var(--primary-d);">现实哲思的互动作品</strong>，让每一次交互都纯粹而有力。
+          </p>
+          <div class="quote-box">
+            “大道至简，化繁为简。取此室名，希望我们的合作项目能摈弃华丽的辞藻外衣，一针见血地分析与解决问题，以<strong style="color:var(--primary-d);">崇高的立意、深刻的思维、强有力的现实意义</strong>完成合作项目。”
+          </div>
+          <div style="display:flex;gap:10px;margin-top:14px;">
+            <div class="pill-tag">🎯 崇高立意</div>
+            <div class="pill-tag">🧠 深刻思维</div>
+            <div class="pill-tag">🌍 强现实意义</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Window: Hardcore Engineering & Metrics -->
+      <div class="neo-win act2-right-win" id="a2-right">
+        <div class="win-bar">
+          <div class="win-dots"><span></span><span></span><span></span></div>
+          <div class="win-title">STUDIO_METRICS // CORE</div>
+          <div class="win-badge">硬核实力</div>
+        </div>
+        <div class="win-body">
+          <div class="pill-tag" style="margin-bottom:12px;">⚡ 精品产出与自由协作</div>
+          <div class="metric-row">
+            <div>
+              <div style="font-size:0.7rem;color:var(--ink-400);font-weight:700;">社区精选产出</div>
+              <div class="grad-text" style="font-size:1.35rem;font-weight:900;">15+ 份 / 首年</div>
+            </div>
+            <div style="font-size:0.72rem;color:var(--primary-d);font-weight:700;background:rgba(0,179,255,0.1);padding:4px 10px;border-radius:8px;white-space:nowrap;">高产精品</div>
+          </div>
+          <div class="metric-row">
+            <div>
+              <div style="font-size:0.7rem;color:var(--ink-400);font-weight:700;">核心赛事传统</div>
+              <div class="grad-text" style="font-size:1.25rem;font-weight:900;">一年两度 GameJam</div>
+            </div>
+            <div style="font-size:0.72rem;color:var(--primary-d);font-weight:700;background:rgba(0,179,255,0.1);padding:4px 10px;border-radius:8px;white-space:nowrap;">多队共创</div>
+          </div>
+          <div class="metric-row" style="margin-bottom:0;">
+            <div>
+              <div style="font-size:0.7rem;color:var(--ink-400);font-weight:700;">面向对象般协作模式</div>
+              <div class="grad-text" style="font-size:1.2rem;font-weight:900;">权力与职务分离</div>
+            </div>
+            <div style="font-size:0.72rem;color:var(--primary-d);font-weight:700;background:rgba(0,179,255,0.1);padding:4px 10px;border-radius:8px;white-space:nowrap;">开放互助</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         ACT III (12.5s - 20.5s): PROJECTS · 历届作品与 GameJam 巡礼
+         Background Sculpture: Left Windmill Mountain + Center Soundwave Coaster + Right Evolution Helix
+         Foreground: All 5 Complete, Independent Project Windows (Zero Merging!)
+         ========================================================= -->
+    <section class="act-scene" id="act-3">
+      <!-- Window 1: 星坡夏日研学之旅 [23SGJ] -->
+      <div class="neo-win proj-win" id="a3-p1" style="left:25px;top:52px;width:375px;height:282px;">
+        <div class="win-bar">
+          <div class="win-dots"><span></span><span></span><span></span></div>
+          <div class="win-title">23SGJ // STAR_SLOPE_TRIP</div>
+          <div class="win-badge">研学 · 2023</div>
+        </div>
+        <div class="win-body">
+          <div class="proj-canvas-wrap">
+            <canvas id="proj-canvas-1" width="330" height="108"></canvas>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px;">
+            <h4 style="font-size:0.95rem;font-weight:800;color:var(--ink-900);white-space:nowrap;">《星坡夏日研学之旅》 [23SGJ]</h4>
+            <span class="pill-tag" style="padding:2px 8px;font-size:0.64rem;">环保研学企划</span>
+          </div>
+          <p style="font-size:0.76rem;color:var(--ink-500);line-height:1.58;">
+            星坡学院环保社实地考察工厂与森林公园，将见闻感悟化作呼吁保护地球的互动作品，探索<strong style="color:var(--primary-d);">游戏与教育的无限可能</strong>。
+          </p>
+        </div>
+      </div>
+
+      <!-- Window 2: 西瓜传说 [22WGJ] -->
+      <div class="neo-win proj-win" id="a3-p2" style="left:420px;top:40px;width:360px;height:282px;">
+        <div class="win-bar">
+          <div class="win-dots"><span></span><span></span><span></span></div>
+          <div class="win-title">22WGJ // WATERMELON_LEGEND</div>
+          <div class="win-badge">1周年纪念</div>
+        </div>
+        <div class="win-body">
+          <div class="proj-canvas-wrap light-mode">
+            <canvas id="proj-canvas-2" width="316" height="108"></canvas>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px;">
+            <h4 style="font-size:0.96rem;font-weight:800;color:var(--ink-900);white-space:nowrap;">《西瓜传说》 [22WGJ]</h4>
+            <span class="pill-tag" style="padding:2px 8px;font-size:0.64rem;">2022 冬季 GJ</span>
+          </div>
+          <p style="font-size:0.76rem;color:var(--ink-500);line-height:1.58;">
+            Oscar、MagicCube、Nights 联袂打造，纪念创立一周年暨献礼五周年，以极简几何玩法传递无限乐趣。
+          </p>
+        </div>
+      </div>
+
+      <!-- Window 3: Trackmaker [22SGJ] -->
+      <div class="neo-win proj-win" id="a3-p3" style="left:800px;top:52px;width:375px;height:282px;">
+        <div class="win-bar">
+          <div class="win-dots"><span></span><span></span><span></span></div>
+          <div class="win-title">22SGJ // TRACKMAKER_SYNTH</div>
+          <div class="win-badge">音轨律动</div>
+        </div>
+        <div class="win-body">
+          <div class="proj-canvas-wrap">
+            <canvas id="proj-canvas-3" width="330" height="108"></canvas>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px;">
+            <h4 style="font-size:0.96rem;font-weight:800;color:var(--ink-900);white-space:nowrap;">《Trackmaker》 [22SGJ]</h4>
+            <span class="pill-tag" style="padding:2px 8px;font-size:0.64rem;">2022 夏季 GJ</span>
+          </div>
+          <p style="font-size:0.76rem;color:var(--ink-500);line-height:1.58;">
+            音乐节拍与几何轨道的极简融合，搭配《西瓜懒加载社区》无扩展进度拖拽与滚动歌词等先锋交互技术。
+          </p>
+        </div>
+      </div>
+
+      <!-- Window 4: 演化 Evolution [24SGJ] -->
+      <div class="neo-win proj-win" id="a3-p4" style="left:165px;top:356px;width:415px;height:270px;">
+        <div class="win-bar">
+          <div class="win-dots"><span></span><span></span><span></span></div>
+          <div class="win-title">24SGJ // EVOLUTION_SIM</div>
+          <div class="win-badge">生命演化</div>
+        </div>
+        <div class="win-body">
+          <div class="proj-canvas-wrap light-mode" style="height:96px;">
+            <canvas id="proj-canvas-4" width="370" height="96"></canvas>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px;">
+            <h4 style="font-size:0.96rem;font-weight:800;color:var(--ink-900);white-space:nowrap;">《演化 Evolution》 [24SGJ]</h4>
+            <span class="pill-tag" style="padding:2px 8px;font-size:0.64rem;">2024 夏季 GJ</span>
+          </div>
+          <p style="font-size:0.76rem;color:var(--ink-500);line-height:1.58;">
+            以极简规则推演复杂生命形态进化，连同《东方星轨录》《奇形碰撞》《Ball Escape》展现硬核算法张力。
+          </p>
+        </div>
+      </div>
+
+      <!-- Window 5: Simplicity 4th Anniversary [25WGJ] -->
+      <div class="neo-win proj-win" id="a3-p5" style="left:615px;top:356px;width:420px;height:270px;">
+        <div class="win-bar">
+          <div class="win-dots"><span></span><span></span><span></span></div>
+          <div class="win-title">25WGJ // 4TH_ANNIVERSARY</div>
+          <div class="win-badge">四周年巨献</div>
+        </div>
+        <div class="win-body">
+          <div class="proj-canvas-wrap" style="height:96px;">
+            <canvas id="proj-canvas-5" width="375" height="96"></canvas>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:5px;">
+            <h4 style="font-size:0.95rem;font-weight:800;color:var(--ink-900);white-space:nowrap;">《Simplicity 4th Anniversary》</h4>
+            <span class="pill-tag" style="padding:2px 8px;font-size:0.64rem;">2025 冬季 GJ</span>
+          </div>
+          <p style="font-size:0.76rem;color:var(--ink-500);line-height:1.58;">
+            自 2022 年起将一年两度 CCW GameJam 确立为核心传统，多支战队并肩作战，回望来路，续写传奇。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         ACT IV (20.5s - 28.0s): ECOSYSTEM · 星坡宇宙、开源与明星团队
+         Background Sculpture: 3D Star-Slope Castle Perched on a Rolling Hill + 9-Academy Magic Astrolabe Ring
+         Foreground: All 3 Complete Bento Windows (Star-Slope IP, Open Source/Courses, 6-Member Star Team)
+         ========================================================= -->
+    <section class="act-scene" id="act-4">
+      <!-- Top-Left Window: Star-Slope Academy Original IP -->
+      <div class="neo-win bento-ip-win" id="a4-ip">
+        <div class="win-bar">
+          <div class="win-dots"><span></span><span></span><span></span></div>
+          <div class="win-title">ORIGINAL_IP // STAR_SLOPE_ACADEMY</div>
+          <div class="win-badge">星坡学院</div>
+        </div>
+        <div class="win-body">
+          <div style="display:flex;gap:14px;align-items:center;">
+            <canvas id="ip-crest-canvas" width="118" height="118" style="width:118px;height:118px;border-radius:16px;background:linear-gradient(135deg,#07223d,#005a8f);flex-shrink:0;"></canvas>
+            <div>
+              <span class="pill-tag" style="margin-bottom:6px;">✨ “星坡”谐音 Simple · 架空世界观</span>
+              <h4 style="font-size:1.05rem;font-weight:800;color:var(--ink-900);margin-bottom:4px;">魔法即编程 · 咒语即代码</h4>
+              <p style="font-size:0.75rem;color:var(--ink-500);line-height:1.6;">
+                在星空山坡的宏伟城堡中，以图形化编程 Scratch 为主流魔法，衍生《星坡夏日研学之旅 [23SGJ]》与《时间跃迁实验室》等维基故事集。
+              </p>
+            </div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;">
+            <span class="pill-tag" style="font-size:0.65rem;padding:3px 9px;">🔮 魔法编程与工程学院</span>
+            <span class="pill-tag" style="font-size:0.65rem;padding:3px 9px;">⏳ 时空科学学院</span>
+            <span class="pill-tag" style="font-size:0.65rem;padding:3px 9px;">🧬 魔法生命科学学院</span>
+            <span class="pill-tag" style="font-size:0.65rem;padding:3px 9px;">🎨 魔法艺术与幻力构筑等九大学院</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom-Left Window: Open Source, Courses & Simplicity Coin -->
+      <div class="neo-win bento-oss-win" id="a4-oss">
+        <div class="win-bar">
+          <div class="win-dots"><span></span><span></span><span></span></div>
+          <div class="win-title">OPEN_SOURCE_&_EDU // ECOSYSTEM</div>
+          <div class="win-badge">开源共创</div>
+        </div>
+        <div class="win-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div style="padding:11px 12px;border-radius:14px;background:linear-gradient(135deg,#07223d,#0b3b66);color:#fff;">
+              <div style="font-size:0.68rem;color:var(--accent);font-weight:700;">📦 OPEN SOURCE</div>
+              <div style="font-size:0.88rem;font-weight:800;margin:3px 0;">Simplicity 开源程序库</div>
+              <div style="font-size:0.7rem;color:rgba(255,255,255,0.78);">共创筑梦计划 · 整理算法/素材赋能全社区</div>
+            </div>
+            <div style="padding:11px 12px;border-radius:14px;background:rgba(0,179,255,0.08);border:1px solid rgba(0,179,255,0.18);">
+              <div style="font-size:0.68rem;color:var(--primary-d);font-weight:700;">₿ PIONEER LAB</div>
+              <div style="font-size:0.88rem;font-weight:800;color:var(--ink-900);margin:3px 0;">简约币 2021 跨作体系</div>
+              <div style="font-size:0.7rem;color:var(--ink-500);">话题合战第4名 · 授权《几何·暗》《dimension》《科技》</div>
+            </div>
+          </div>
+          <div style="margin-top:10px;padding:10px 14px;border-radius:14px;background:rgba(255,255,255,0.82);border:1px solid rgba(0,179,255,0.16);display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <div>
+              <div style="font-size:0.7rem;font-weight:700;color:var(--primary-d);">📚 原创零门槛课程体系</div>
+              <div style="font-size:0.78rem;font-weight:800;color:var(--ink-900);">《萌新培训营 1.0 & 2.0》 · 《文字互动小说，启动！》</div>
+            </div>
+            <span class="pill-tag" style="font-size:0.64rem;">知识共享</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Window: Core Star Team Matrix -->
+      <div class="neo-win bento-team-win" id="a4-team">
+        <div class="win-bar">
+          <div class="win-dots"><span></span><span></span><span></span></div>
+          <div class="win-title">STAR_ROSTER // CORE_ARCHITECTS</div>
+          <div class="win-badge">明星成员</div>
+        </div>
+        <div class="win-body">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <span class="pill-tag">🌟 群星闪耀 · 每一位成员都是不可或缺的坐标</span>
+            <span style="font-size:0.72rem;font-weight:700;color:var(--primary-d);">FEISHU + QQ 协同</span>
+          </div>
+          <h3 class="grad-text" style="font-size:1.5rem;font-weight:900;margin:10px 0 4px;">核心团队与代表创作者</h3>
+          <p style="font-size:0.78rem;color:var(--ink-500);margin-bottom:10px;">
+            从创始元老到新生代主力，以自由互助的社区氛围共同铸就 Simplicity 精品矩阵：
+          </p>
+
+          <div class="team-grid">
+            <div class="member-card">
+              <div class="member-avatar">⭐</div>
+              <div>
+                <div style="font-size:0.9rem;font-weight:800;color:var(--ink-900);">Oscar ⭐ 星瞳</div>
+                <div style="font-size:0.7rem;color:var(--primary-d);font-weight:700;">创始人 & 现任室长 · 简约币创始人</div>
+                <div style="font-size:0.68rem;color:var(--ink-500);">11份精选 · Seeds特邀嘉宾 · 互动小说教程作者</div>
+              </div>
+            </div>
+
+            <div class="member-card">
+              <div class="member-avatar" style="background:linear-gradient(135deg,#007ec2,#00b3ff);">⚡</div>
+              <div>
+                <div style="font-size:0.9rem;font-weight:800;color:var(--ink-900);">没电</div>
+                <div style="font-size:0.7rem;color:var(--primary-d);font-weight:700;">核心成员 · 官网星标创作者</div>
+                <div style="font-size:0.68rem;color:var(--ink-500);">深耕极简交互与硬核机制研发</div>
+              </div>
+            </div>
+
+            <div class="member-card">
+              <div class="member-avatar" style="background:linear-gradient(135deg,#0099e6,#00d9ff);">🌙</div>
+              <div>
+                <div style="font-size:0.9rem;font-weight:800;color:var(--ink-900);">浅歌碎梦</div>
+                <div style="font-size:0.7rem;color:var(--primary-d);font-weight:700;">核心成员 · 官网星标创作者</div>
+                <div style="font-size:0.68rem;color:var(--ink-500);">兼具美学设计感与叙事表现力</div>
+              </div>
+            </div>
+
+            <div class="member-card">
+              <div class="member-avatar" style="background:linear-gradient(135deg,#00d9ff,#00b3ff);">✨</div>
+              <div>
+                <div style="font-size:0.9rem;font-weight:800;color:var(--ink-900);">梦林 Melisky</div>
+                <div style="font-size:0.7rem;color:var(--primary-d);font-weight:700;">核心成员 · 官网星标创作者</div>
+                <div style="font-size:0.68rem;color:var(--ink-500);">多届 GameJam 共创主力成员</div>
+              </div>
+            </div>
+
+            <div class="member-card">
+              <div class="member-avatar" style="background:linear-gradient(135deg,#0077b6,#38c8ff);">◈</div>
+              <div>
+                <div style="font-size:0.9rem;font-weight:800;color:var(--ink-900);">Jason</div>
+                <div style="font-size:0.7rem;color:var(--primary-d);font-weight:700;">联合创始人 & 第一任室长</div>
+                <div style="font-size:0.68rem;color:var(--ink-500);">代表作《科技》《Ball Escape》《方块跑酷》</div>
+              </div>
+            </div>
+
+            <div class="member-card">
+              <div class="member-avatar" style="background:linear-gradient(135deg,#00b3ff,#00e1ff);">❖</div>
+              <div>
+                <div style="font-size:0.9rem;font-weight:800;color:var(--ink-900);">MagicCube & 先锋群星</div>
+                <div style="font-size:0.7rem;color:var(--primary-d);font-weight:700;">高层管理与历代共创伙伴</div>
+                <div style="font-size:0.68rem;color:var(--ink-500);">《Crumbling Future》《Consume Power》等</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px;padding:10px 14px;border-radius:14px;background:linear-gradient(90deg,rgba(0,179,255,0.09),rgba(0,225,255,0.05));border:1px solid rgba(0,179,255,0.18);display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:0.76rem;font-weight:700;color:var(--primary-d);">🚀 下一位闪耀的名字，正在等待你的书写</span>
+            <span style="font-size:0.72rem;font-weight:800;color:var(--primary);">NEXT: YOU →</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         ACT V (28.0s - 34.0s): RECRUITMENT · 六大方向，虚位以待
+         Background Sculpture: 6 Vertical Hexagonal Crystal Pillars + Ascending Dual-Spiral Staircase
+         Foreground: All 3 Complete Recruitment Windows (Left Dual-Tier, Center 6-Track Radar, Right Join Flow)
+         ========================================================= -->
+    <section class="act-scene" id="act-5">
+      <!-- Left Window: Dual-Tier Growth System -->
+      <div class="neo-win rec-left-win" id="a5-left">
+        <div class="win-bar">
+          <div class="win-dots"><span></span><span></span><span></span></div>
+          <div class="win-title">MEMBER_TIERS // GROWTH</div>
+          <div class="win-badge">双轨晋升</div>
+        </div>
+        <div class="win-body">
+          <div class="pill-tag" style="margin-bottom:10px;">📈 阶梯式成长体系</div>
+          <div class="tier-box">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <span style="font-size:0.92rem;font-weight:800;color:var(--primary-d);">🌱 见习成员 (30天见习)</span>
+              <span class="win-badge">潜力孵化</span>
+            </div>
+            <p style="font-size:0.74rem;color:var(--ink-500);line-height:1.6;">
+              • 具备完成初精潜力或单项特长<br>
+              • <strong>享有权益</strong>：正式成员一对一指导、学习合作方法、直接参与工作室项目制作
+            </p>
+          </div>
+          <div class="tier-box" style="margin-bottom:0;border-color:rgba(0,179,255,0.3);background:linear-gradient(135deg,rgba(255,255,255,0.92),rgba(232,248,255,0.88));">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <span style="font-size:0.92rem;font-weight:800;color:var(--primary-d);">💎 正式成员 (新秀 / II型)</span>
+              <span class="win-badge">核心力量</span>
+            </div>
+            <p style="font-size:0.74rem;color:var(--ink-500);line-height:1.6;">
+              • 具备初精/中精实力或单项远超常人<br>
+              • <strong>享有权益</strong>：解锁<strong>全部项目源码</strong>、加入<strong>飞书核心知识库</strong>、GameJam 辅助组队与丰厚活动奖励
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center Window: 6 Talent Tracks Radar -->
+      <div class="neo-win rec-center-win" id="a5-center">
+        <div class="win-bar">
+          <div class="win-dots"><span></span><span></span><span></span></div>
+          <div class="win-title">RECRUITMENT_MATRIX // 6_SPECIALTIES</div>
+          <div class="win-badge">招新全开</div>
+        </div>
+        <div class="win-body" style="text-align:center;">
+          <span class="pill-tag">🎯 入室考核六大特长维度（排名区分先后）</span>
+          <h3 class="grad-text" style="font-size:1.55rem;font-weight:900;margin:8px 0 4px;">寻找同频共振的创作者</h3>
+          <canvas id="radar-canvas" width="420" height="245" style="width:100%;height:245px;margin:4px 0;"></canvas>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;">
+            <div class="pill-tag" style="justify-content:center;">🎨 美术 & 极简UI</div>
+            <div class="pill-tag" style="justify-content:center;">🎵 音乐 & 音效</div>
+            <div class="pill-tag" style="justify-content:center;">✒️ 文案 & 剧情</div>
+            <div class="pill-tag" style="justify-content:center;">💻 程序 & 算法</div>
+            <div class="pill-tag" style="justify-content:center;">🧭 策划 & 机制</div>
+            <div class="pill-tag" style="justify-content:center;">🤝 协作管理</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Window: Culture & Application Flow -->
+      <div class="neo-win rec-right-win" id="a5-right">
+        <div class="win-bar">
+          <div class="win-dots"><span></span><span></span><span></span></div>
+          <div class="win-title">OPEN_CULTURE // JOIN_US</div>
+          <div class="win-badge">自由开放</div>
+        </div>
+        <div class="win-body">
+          <div class="pill-tag" style="margin-bottom:10px;">🕊️ 零束缚 · 创作者理想国</div>
+          <div class="tier-box">
+            <div style="font-size:0.88rem;font-weight:800;color:var(--ink-900);margin-bottom:4px;">✦ 允许拥有多室籍 · 来去自由</div>
+            <p style="font-size:0.74rem;color:var(--ink-500);line-height:1.6;">
+              无强制日常摊派，平时自由创作或上传算法/素材库；每年两度集结征战 <strong>CCW GameJam</strong>！
+            </p>
+          </div>
+          <div class="tier-box" style="margin-bottom:0;">
+            <div style="font-size:0.88rem;font-weight:800;color:var(--primary-d);margin-bottom:6px;">✦ 三步丝滑入室流程</div>
+            <div style="font-size:0.74rem;color:var(--ink-700);line-height:1.75;">
+              <strong>STEP 01</strong> · 提交申请（QQ 或共创世界留言）或受正式成员邀请<br>
+              <strong>STEP 02</strong> · 考官浏览社区主页、体验代表作品与文章初试<br>
+              <strong>STEP 03</strong> · QQ 在线轻访谈交流 → 评定见习或正式成员！
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         ACT VI (34.0s - 38.0s): GRAND FINALE · 华丽终章，共赴未来
+         Background Sculpture: Sweeping 3D Twin-Wing Star Gate Portal Arching Across Upper Sky
+         Foreground: Free-Floating Logo + Headline + 3 Independent CTA Cards + 4 Orbiting Satellites
+         ========================================================= -->
+    <section class="act-scene" id="act-6">
+      <div class="free-float-3d finale-free-hero" id="a6-main">
+        <div class="pill-tag" style="margin-bottom:12px;background:rgba(255,255,255,0.85);box-shadow:var(--neo-shadow-sm);padding:6px 18px;font-size:0.75rem;">
+          ✦ 大道至简 · 化繁为简 · 共筑 Scratch 独立游戏新纪元
+        </div>
+
+        <div style="width:78%;margin:4px auto 12px;">
+          <svg class="simplicity-svg" viewBox="0 0 423.193 40" xmlns="http://www.w3.org/2000/svg">
+            <g transform="translate(-28.4035 -160)" fill="url(#shardGrad1)">
+              <path d="M425.596 168 427.596 184 411.596 160Z"/>
+              <path d="M451.596 160 429.596 200 439.596 166Z"/>
+              <path d="M85.5964 200 83.5964 160 91.5964 168Z"/>
+              <path d="M107.751 199.627 115.674 160.012 115.674 191.704Z"/>
+              <path d="M123.597 199.627 127.558 183.781 131.52 199.627Z"/>
+              <path d="M139.443 191.704 139.443 160.012 147.366 199.627Z"/>
+              <path d="M403.396 167.935 363.781 167.935 367.743 160.012Z"/>
+              <path d="M379.628 199.627 379.628 175.858 387.551 175.858Z"/>
+              <path d="M28.4036 167.935 68.0187 160.012 40.3417 171.926 44.2496 183.781Z"/>
+              <path d="M68.0187 191.704 28.4035 199.627 56.0805 187.714 52.1726 175.858Z"/>
+              <path d="M171.645 184.039 182.36 172.223 167.645 160.242 195.354 172.223Z"/>
+              <path d="M163.742 168.242 163.742 199.758 155.839 160.242Z"/>
+              <path d="M261.596 200 259.596 160 267.596 168Z"/>
+              <path d="M341.596 200 339.596 160 347.596 168Z"/>
+              <path d="M283.677 189.389 283.677 170.73 291.555 180.151Z"/>
+              <path d="M323.563 168.744 302.004 168.744 295.286 160.367Z"/>
+              <path d="M323.563 191.375 295.286 199.752 302.004 191.375Z"/>
+              <path d="M215.596 192 245.596 192 211.596 200Z"/>
+              <path d="M205.596 200 205.596 160 213.596 168Z"/>
+            </g>
+          </svg>
+        </div>
+
+        <h2 class="grad-text" style="font-size:1.78rem;font-weight:900;letter-spacing:3.5px;margin-bottom:6px;text-shadow:0 8px 24px rgba(0,179,255,0.16);">
+          如果你也相信极简美学的力量，欢迎加入我们！
+        </h2>
+        <p style="font-size:0.85rem;color:var(--ink-700);font-weight:600;letter-spacing:1.8px;">
+          美术 · 音乐 · 文案 · 程序 · 策划 · 协作管理 — 与顶尖创作者并肩同行
+        </p>
+      </div>
+
+      <!-- 3 Independent Floating 3D Neumorphic CTA Cards -->
+      <div class="finale-cta-row">
+        <div class="cta-glass-card" id="a6-cta1">
+          <div style="font-size:0.7rem;font-weight:700;color:var(--primary-d);letter-spacing:1.5px;">RECRUITMENT QQ</div>
+          <div class="grad-text" style="font-size:1.5rem;font-weight:900;margin:5px 0 2px;">39860333</div>
+          <div style="font-size:0.74rem;color:var(--ink-500);font-weight:600;">室长 Oscar · 入室考核通道</div>
+        </div>
+
+        <div class="cta-glass-card" id="a6-cta2">
+          <div style="font-size:0.7rem;font-weight:700;color:var(--primary-d);letter-spacing:1.5px;">STUDIO QQ GROUP</div>
+          <div class="grad-text" style="font-size:1.5rem;font-weight:900;margin:5px 0 2px;">1079868841</div>
+          <div style="font-size:0.74rem;color:var(--ink-500);font-weight:600;">Simplicity 工作室交流群</div>
+        </div>
+
+        <div class="cta-glass-card" id="a6-cta3">
+          <div style="font-size:0.7rem;font-weight:700;color:var(--primary-d);letter-spacing:1.5px;">COMMUNITIES</div>
+          <div class="grad-text" style="font-size:1.24rem;font-weight:900;margin:7px 0 4px;">共创世界 · 稽木世界</div>
+          <div style="font-size:0.74rem;color:var(--ink-500);font-weight:600;">小码王 · 飞书知识库协同</div>
+        </div>
+      </div>
+
+      <!-- 4 Orbiting Finale Satellite Glass Badges -->
+      <div class="neo-win finale-sat-chip" id="a6-sat1" style="left:15px;top:52px;">
+        <div style="font-size:0.68rem;font-weight:700;color:var(--primary-d);">🏆 GAMEJAM GLORY</div>
+        <div style="font-size:0.88rem;font-weight:800;color:var(--ink-900);margin-top:2px;">一年两度征战 CCW GJ</div>
+      </div>
+      <div class="neo-win finale-sat-chip" id="a6-sat2" style="left:950px;top:52px;">
+        <div style="font-size:0.68rem;font-weight:700;color:var(--primary-d);">🔮 ORIGINAL UNIVERSE</div>
+        <div style="font-size:0.88rem;font-weight:800;color:var(--ink-900);margin-top:2px;">星坡学院 · 魔法即编程</div>
+      </div>
+      <div class="neo-win finale-sat-chip" id="a6-sat3" style="left:15px;top:535px;">
+        <div style="font-size:0.68rem;font-weight:700;color:var(--primary-d);">📦 OPEN ECOSYSTEM</div>
+        <div style="font-size:0.88rem;font-weight:800;color:var(--ink-900);margin-top:2px;">开源程序库 · 萌新培训营</div>
+      </div>
+      <div class="neo-win finale-sat-chip" id="a6-sat4" style="left:950px;top:535px;">
+        <div style="font-size:0.68rem;font-weight:700;color:var(--primary-d);">✨ SIMPLICITY SPIRIT</div>
+        <div style="font-size:0.88rem;font-weight:800;color:var(--ink-900);margin-top:2px;">简约至上 · 极致创作</div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<!-- Bottom Cinematic Subtitle Bar -->
+<div class="subtitle-dock">
+  <div class="subtitle-glass" id="subtitle-box">
+    <div class="subtitle-main" id="sub-main">破界而生 · 2021年1月25日，Simplicity Studio 正式启航</div>
+    <div class="subtitle-sub" id="sub-en">SIMPLICITY STUDIO — MINIMALIST AESTHETICS & INDIE GAME CREATION</div>
+  </div>
+</div>
+
+<script>
+/* ============================================================================
+   SIMPLICITY STUDIO — 38s CONTINUOUS ONE-TAKE 3D MOTION FILM (v5)
+   - Preserves 100% of v2's complete multi-window layouts & detailed descriptions
+     (5 independent project windows, 3 Bento windows with 6 full member cards,
+     3 philosophy windows, 3 recruitment windows + 6-axis radar).
+   - Pairs each page with a grand, spatially varied 3D wireframe sculpture
+     that weaves behind and around the translucent 3D liquid glass windows.
+   - Removes contrived/literal explanatory labels on the 3D models.
+   ============================================================================ */
+
+const DURATION = 38.0;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, u) => a + (b - a) * u;
+const norm = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
+
+function smootherstep(edge0, edge1, x) {
+  const t = clamp((x - edge0) / (edge1 - edge0), 0, 1);
+  return t * t * t * (t * (t * 6 - 15) + 10);
+}
+function envelope(t, inStart, inEnd, outStart, outEnd) {
+  return smootherstep(inStart, inEnd, t) * (1 - smootherstep(outStart, outEnd, t));
+}
+const easeOutCubic = x => 1 - Math.pow(1 - x, 3);
+const easeInCubic = x => x * x * x;
+const easeOutBack = x => {
+  const c1 = 1.5, c3 = c1 + 1;
+  return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
+};
+function lerp3D(pA, pB, u) {
+  return {
+    x: lerp(pA.x, pB.x, u),
+    y: lerp(pA.y, pB.y, u),
+    z: lerp(pA.z, pB.z, u)
+  };
+}
+
+// Responsive Stage Scaling
+const cameraRig = document.getElementById('camera-rig');
+let viewportScale = 1;
+function updateViewportScale() {
+  const sx = window.innerWidth / 1280;
+  const sy = window.innerHeight / 760;
+  viewportScale = clamp(Math.min(sx, sy), 0.42, 1.35);
+}
+window.addEventListener('resize', updateViewportScale);
+updateViewportScale();
+
+// Pre-compute 3D scatter vectors for the 20 SVG logo shards in Act 1
+const shardEls = Array.from(document.querySelectorAll('#intro-logo-svg .shard-path'));
+const shardVectors = shardEls.map((_, idx) => {
+  const angle = (idx / shardEls.length) * Math.PI * 2 + 0.4;
+  const radius = 180 + (idx % 5) * 60;
+  return {
+    tx: Math.cos(angle) * radius,
+    ty: Math.sin(angle) * (radius * 0.65),
+    rz: ((idx % 2 === 0 ? 1 : -1) * (40 + idx * 10)),
+    delay: idx * 0.038
+  };
+});
+
+// Scripted Subtitle & Act HUD Timeline
+const TIMELINE_CAPTIONS = [
+  {
+    t0: 0.0, t1: 3.1,
+    act: 'ACT I · 破界而生',
+    zh: '2021年1月25日，二十枚极简折纸三棱镜在天际聚合成型',
+    en: 'EST. 2021.01.25 · SIMPLICITY STUDIO GENESIS'
+  },
+  {
+    t0: 3.1, t1: 6.2,
+    act: 'ACT I · 极简降临',
+    zh: '专注 Scratch 独立游戏开发 · 首年即斩获 15+ 份社区精选作品',
+    en: 'SCRATCH INDIE GAME DEVELOPMENT · 15+ FEATURED MASTERPIECES'
+  },
+  {
+    t0: 6.2, t1: 9.4,
+    act: 'ACT II · 美学简约',
+    zh: '从拟物渐变到纯粹几何色块——“最好的设计，是让人感受不到设计本身的存在”',
+    en: 'AESTHETIC EVOLUTION · FROM SKEUOMORPHISM TO PURE GEOMETRY'
+  },
+  {
+    t0: 9.4, t1: 12.5,
+    act: 'ACT II · 哲思涵义',
+    zh: '大道至简，化繁为简 · 摒弃华丽辞藻外衣，以崇高立意与深刻思维雕琢作品',
+    en: 'PHILOSOPHY · PROFOUND MEANING & REALITY IMPACT'
+  },
+  {
+    t0: 12.5, t1: 16.5,
+    act: 'ACT III · 匠心矩阵',
+    zh: '从《星坡夏日研学之旅》环保实践，到《西瓜传说》《Trackmaker》的极简律动',
+    en: 'FLAGSHIP WORKS · STAR-SLOPE SUMMER TRIP, WATERMELON LEGEND & TRACKMAKER'
+  },
+  {
+    t0: 16.5, t1: 20.5,
+    act: 'ACT III · 历届巡礼',
+    zh: '一年两度征战 CCW GameJam · 《演化 Evolution》与四周年巨献续写辉煌',
+    en: 'CONTINUOUS EVOLUTION · 2021 TO 2025 GAMEJAM CHRONICLES'
+  },
+  {
+    t0: 20.5, t1: 24.2,
+    act: 'ACT IV · 星坡宇宙',
+    zh: '构建原创架空 IP「星坡学院」：魔法即编程，咒语即代码，开源程序库共筑梦想',
+    en: 'STAR-SLOPE ACADEMY IP · OPEN-SOURCE LIBRARY & SIMPLICITY COIN'
+  },
+  {
+    t0: 24.2, t1: 28.0,
+    act: 'ACT IV · 明星团队',
+    zh: 'Oscar⭐星瞳、Jason、没电、浅歌碎梦、梦林 Melisky · 群星汇聚，互帮互助',
+    en: 'STAR ARCHITECTS & ZERO-BARRIER TUTORIAL COURSES'
+  },
+  {
+    t0: 28.0, t1: 34.0,
+    act: 'ACT V · 招新全开',
+    zh: '美术 · 音乐 · 文案 · 程序 · 策划 · 协作管理 — 见习与正式双轨体系虚位以待',
+    en: 'RECRUITMENT OPEN · 6 TALENT TRACKS & DUAL-TIER GROWTH PATH'
+  },
+  {
+    t0: 34.0, t1: 38.0,
+    act: 'ACT VI · 共赴未来',
+    zh: '加入 Simplicity Studio · 招新考核 QQ：39860333 | 工作室群：1079868841',
+    en: 'JOIN SIMPLICITY STUDIO · SHAPE THE FUTURE OF MINIMALIST CREATION'
+  }
+];
+
+const hudActLabel = document.getElementById('hud-act-label');
+const subMain = document.getElementById('sub-main');
+const subEn = document.getElementById('sub-en');
+let currentCaptionIdx = -1;
+
+function updateCaptions(t) {
+  const idx = TIMELINE_CAPTIONS.findIndex(c => t >= c.t0 && t < c.t1);
+  if (idx !== -1 && idx !== currentCaptionIdx) {
+    currentCaptionIdx = idx;
+    const item = TIMELINE_CAPTIONS[idx];
+    hudActLabel.textContent = item.act;
+    subMain.textContent = item.zh;
+    subEn.textContent = item.en;
+  }
+}
+
+/* ============================================================================
+   BESPOKE 240-NODE 3D SCULPTURAL FORMATIONS (Scaled & Framed to Weave Behind
+   and Around the Complete v2 Multi-Window Layouts)
+   ============================================================================ */
+const bgCanvas = document.getElementById('bg-canvas');
+const bgCtx = bgCanvas.getContext('2d');
+let bgW = window.innerWidth, bgH = window.innerHeight;
+
+function resizeBgCanvas() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  bgW = window.innerWidth;
+  bgH = window.innerHeight;
+  bgCanvas.width = Math.floor(bgW * dpr);
+  bgCanvas.height = Math.floor(bgH * dpr);
+  bgCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener('resize', resizeBgCanvas);
+resizeBgCanvas();
+
+const NUM_NODES = 240;
+const PALETTE = ["#00b3ff", "#007ec2", "#00d9ff", "#38c8ff", "#0095ff"];
+
+const FORM_POS = [[], [], [], [], [], []];
+const FORM_EDGES = [[], [], [], [], [], []];
+
+(function buildSculpturalModels() {
+  // =========================================================================
+  // ACT I (Model 0, Upper Sky y = -105):
+  // Origami Triangular Prism Crown + 16 Orbiting 3D Tetrahedra
+  // =========================================================================
+  {
+    const cy = -105;
+    for (let ring = 0; ring < 3; ring++) {
+      const rBase = ring === 0 ? 48 : ring === 1 ? 96 : 148;
+      const zOff = (ring - 1) * 48;
+      for (let k = 0; k < 24; k++) {
+        const idx = ring * 24 + k;
+        const a = (k / 24) * Math.PI * 2;
+        const starMod = (k % 4 === 0) ? 1.28 : (k % 2 === 0) ? 0.92 : 0.75;
+        const r = rBase * starMod;
+        FORM_POS[0].push({
+          x: Math.cos(a) * r * 1.25,
+          y: cy + Math.sin(a) * r * 0.72,
+          z: zOff + Math.sin(a * 3) * 24
+        });
+        const nextK = ring * 24 + ((k + 1) % 24);
+        FORM_EDGES[0].push([idx, nextK]);
+        if (ring < 2 && k % 2 === 0) {
+          FORM_EDGES[0].push([idx, (ring + 1) * 24 + k]);
+          FORM_EDGES[0].push([idx, (ring + 1) * 24 + ((k + 2) % 24)]);
+        }
+      }
+    }
+    for (let tet = 0; tet < 16; tet++) {
+      const base = 72 + tet * 4;
+      const orbitA = (tet / 16) * Math.PI * 2;
+      const orbitR = 195 + (tet % 2) * 48;
+      const tx = Math.cos(orbitA) * orbitR * 1.35;
+      const ty = cy + Math.sin(orbitA) * orbitR * 0.52;
+      const tz = Math.sin(orbitA * 2) * 80;
+      const s = 22;
+      const tetV = [
+        [tx, ty - s, tz],
+        [tx - s, ty + s * 0.7, tz - s * 0.7],
+        [tx + s, ty + s * 0.7, tz - s * 0.7],
+        [tx, ty + s * 0.5, tz + s]
+      ];
+      tetV.forEach(([vx, vy, vz]) => FORM_POS[0].push({ x: vx, y: vy, z: vz }));
+      FORM_EDGES[0].push([base, base+1], [base, base+2], [base, base+3], [base+1, base+2], [base+2, base+3], [base+3, base+1]);
+    }
+    for (let i = 136; i < NUM_NODES; i++) {
+      const k = i - 136;
+      const a = (k / 104) * Math.PI * 2;
+      const R = 310;
+      FORM_POS[0].push({
+        x: Math.cos(a) * R * 1.3,
+        y: cy + Math.sin(a) * 45,
+        z: Math.sin(a) * R * 0.7
+      });
+      if (k % 2 === 0) FORM_EDGES[0].push([i, 136 + ((k + 1) % 104)]);
+    }
+  }
+
+  // =========================================================================
+  // ACT II (Model 1, Spanning Upper Sky & Flanks y = -125):
+  // Left Nested Tesseract Cube (-340 X) -> Parabolic Arch over Center Window -> Right Pure Minimalist Ring (+340 X)
+  // =========================================================================
+  {
+    const cy = -125;
+    const cubeSizes = [28, 52, 78, 106];
+    for (let sIdx = 0; sIdx < 4; sIdx++) {
+      const sz = cubeSizes[sIdx];
+      const base = sIdx * 16;
+      const corners = [
+        [-1,-1,-1], [1,-1,-1], [1,1,-1], [-1,1,-1],
+        [-1,-1, 1], [1,-1, 1], [1,1, 1], [-1,1, 1]
+      ];
+      corners.forEach(([cx0, cy0, cz0]) => {
+        FORM_POS[1].push({ x: -340 + cx0 * sz, y: cy + cy0 * sz, z: cz0 * sz });
+      });
+      corners.forEach(([cx0, cy0, cz0], cI) => {
+        const nextC = corners[(cI + 1) % 8];
+        FORM_POS[1].push({
+          x: -340 + (cx0 + nextC[0]) * 0.5 * sz,
+          y: cy + (cy0 + nextC[1]) * 0.5 * sz,
+          z: (cz0 + nextC[2]) * 0.5 * sz
+        });
+      });
+      const cEdges = [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
+      cEdges.forEach(([u, v]) => FORM_EDGES[1].push([base + u, base + v]));
+      if (sIdx < 3) {
+        for (let c = 0; c < 8; c++) {
+          FORM_EDGES[1].push([base + c, (sIdx + 1) * 16 + c]);
+        }
+      }
+    }
+
+    for (let s = 0; s < 3; s++) {
+      for (let k = 0; k < 24; k++) {
+        const idx = 64 + s * 24 + k;
+        const u = k / 23;
+        const bx = lerp(-215, 215, u);
+        const archY = cy - Math.sin(u * Math.PI) * 95 + (s - 1) * 26;
+        const archZ = Math.cos(u * Math.PI * 2 + s) * 35;
+        FORM_POS[1].push({ x: bx, y: archY, z: archZ });
+        if (k < 23) FORM_EDGES[1].push([idx, idx + 1]);
+      }
+    }
+
+    for (let rIdx = 0; rIdx < 2; rIdx++) {
+      const rad = rIdx === 0 ? 92 : 124;
+      const base = 136 + rIdx * 52;
+      for (let k = 0; k < 52; k++) {
+        const idx = base + k;
+        const a = (k / 52) * Math.PI * 2;
+        FORM_POS[1].push({
+          x: 340 + Math.cos(a) * rad,
+          y: cy + Math.sin(a) * rad,
+          z: (rIdx === 0 ? -12 : 12)
+        });
+        FORM_EDGES[1].push([idx, base + ((k + 1) % 52)]);
+        if (rIdx === 0 && k % 4 === 0) {
+          FORM_EDGES[1].push([idx, 136 + 52 + k]);
+        }
+      }
+    }
+  }
+
+  // =========================================================================
+  // ACT III (Model 2, Panoramic 3-Sculpture Horizon Weaving Around & Behind the 5 Project Windows):
+  // Left (-420 X, y=20): 3D Eco-Mountain & Tall Wind Turbine
+  // Center (0 X, y=-20): Wide 3D Soundwave Equalizer Ribbon
+  // Right (+420 X, y=0): Tall 3D DNA Evolution Double-Helix
+  // =========================================================================
+  {
+    const cy = 15;
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 7; c++) {
+        const idx = r * 7 + c;
+        const mx = -540 + c * 38;
+        const mz = (r - 3.5) * 34;
+        const distCenter = Math.hypot(c - 3, r - 3.5);
+        const peakH = Math.max(0, 115 - distCenter * 34);
+        FORM_POS[2].push({ x: mx, y: cy + 85 - peakH, z: mz });
+        if (c < 6) FORM_EDGES[2].push([idx, idx + 1]);
+        if (r < 7) FORM_EDGES[2].push([idx, idx + 7]);
+      }
+    }
+    const towerX = -355, hubY = cy - 95;
+    for (let t = 0; t < 6; t++) {
+      const idx = 56 + t;
+      FORM_POS[2].push({ x: towerX, y: lerp(cy + 85, hubY, t / 5), z: 0 });
+      if (t < 5) FORM_EDGES[2].push([idx, idx + 1]);
+    }
+    for (let b = 0; b < 3; b++) {
+      const baseAngle = (b * Math.PI * 2) / 3;
+      for (let s = 0; s < 6; s++) {
+        const idx = 62 + b * 6 + s;
+        const len = (s + 1) * 16;
+        FORM_POS[2].push({
+          x: towerX + Math.cos(baseAngle) * len,
+          y: hubY + Math.sin(baseAngle) * len,
+          z: 10
+        });
+        if (s === 0) FORM_EDGES[2].push([61, idx]);
+        else FORM_EDGES[2].push([idx - 1, idx]);
+      }
+    }
+
+    for (let bar = 0; bar < 20; bar++) {
+      const bx = -240 + bar * 25;
+      const amp = 35 + Math.abs(Math.sin(bar * 0.55)) * 110;
+      const base = 80 + bar * 4;
+      FORM_POS[2].push(
+        { x: bx, y: cy + 65, z: -20 },
+        { x: bx, y: cy + 65 - amp, z: -20 },
+        { x: bx, y: cy + 65 - amp, z: 20 },
+        { x: bx, y: cy + 65, z: 20 }
+      );
+      FORM_EDGES[2].push([base, base+1], [base+1, base+2], [base+2, base+3], [base, base+3]);
+      if (bar < 19) {
+        FORM_EDGES[2].push([base + 1, base + 5]);
+      }
+    }
+
+    for (let step = 0; step < 40; step++) {
+      const base = 160 + step * 2;
+      const u = step / 39;
+      const a = u * Math.PI * 4.5;
+      const rad = 38 + Math.sin(u * Math.PI) * 52;
+      const y = cy + 165 - u * 350;
+      FORM_POS[2].push(
+        { x: 430 + Math.cos(a) * rad, y, z: Math.sin(a) * rad },
+        { x: 430 - Math.cos(a) * rad, y, z: -Math.sin(a) * rad }
+      );
+      FORM_EDGES[2].push([base, base + 1]);
+      if (step < 39) {
+        FORM_EDGES[2].push([base, base + 2], [base + 1, base + 3]);
+      }
+    }
+  }
+
+  // =========================================================================
+  // ACT IV (Model 3, Towering 3D Star-Slope Castle & 9-Academy Astrolabe Ring):
+  // Positioned at (x = 45, y = 25) with wide 380px Astrolabe Rings so the spires,
+  // hill mesh, and astrolabe rings rise majestically through the central corridor
+  // and behind the translucent Bento windows!
+  // =========================================================================
+  {
+    const cx = 45, cy = 35;
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const idx = r * 8 + c;
+        const hx = cx + (c - 3.5) * 68;
+        const hz = (r - 3.5) * 55;
+        const d = Math.hypot(c - 3.5, r - 3.5);
+        const hy = cy + 75 + d * d * 5.2;
+        FORM_POS[3].push({ x: hx, y: hy, z: hz });
+        if (c < 7) FORM_EDGES[3].push([idx, idx + 1]);
+        if (r < 7) FORM_EDGES[3].push([idx, idx + 8]);
+      }
+    }
+
+    const towers = [
+      { tx: cx, tz: 0, rad: 48, baseH: cy + 75, topH: cy - 145, spireH: cy - 235 },
+      { tx: cx - 105, tz: -70, rad: 28, baseH: cy + 95, topH: cy - 65, spireH: cy - 135 },
+      { tx: cx + 105, tz: -70, rad: 28, baseH: cy + 95, topH: cy - 65, spireH: cy - 135 },
+      { tx: cx - 105, tz:  70, rad: 28, baseH: cy + 95, topH: cy - 65, spireH: cy - 135 },
+      { tx: cx + 105, tz:  70, rad: 28, baseH: cy + 95, topH: cy - 65, spireH: cy - 135 }
+    ];
+    let nodePtr = 64;
+    towers.forEach((tw, tIdx) => {
+      const segs = tIdx === 0 ? 8 : 4;
+      const baseRing = nodePtr;
+      for (let k = 0; k < segs; k++) {
+        const a = (k / segs) * Math.PI * 2 + Math.PI / segs;
+        FORM_POS[3].push({ x: tw.tx + Math.cos(a) * tw.rad, y: tw.baseH, z: tw.tz + Math.sin(a) * tw.rad });
+      }
+      nodePtr += segs;
+      const midRing = nodePtr;
+      for (let k = 0; k < segs; k++) {
+        const a = (k / segs) * Math.PI * 2 + Math.PI / segs;
+        FORM_POS[3].push({ x: tw.tx + Math.cos(a) * tw.rad * 0.9, y: (tw.baseH + tw.topH) * 0.5, z: tw.tz + Math.sin(a) * tw.rad * 0.9 });
+      }
+      nodePtr += segs;
+      const topRing = nodePtr;
+      for (let k = 0; k < segs; k++) {
+        const a = (k / segs) * Math.PI * 2 + Math.PI / segs;
+        FORM_POS[3].push({ x: tw.tx + Math.cos(a) * tw.rad * 0.82, y: tw.topH, z: tw.tz + Math.sin(a) * tw.rad * 0.82 });
+      }
+      nodePtr += segs;
+      const apexIdx = nodePtr++;
+      FORM_POS[3].push({ x: tw.tx, y: tw.spireH, z: tw.tz });
+
+      for (let k = 0; k < segs; k++) {
+        const nk = (k + 1) % segs;
+        FORM_EDGES[3].push(
+          [baseRing + k, baseRing + nk],
+          [midRing + k, midRing + nk],
+          [topRing + k, topRing + nk],
+          [baseRing + k, midRing + k],
+          [midRing + k, topRing + k],
+          [topRing + k, apexIdx]
+        );
+      }
+    });
+    while (FORM_POS[3].length < 160) {
+      const k = FORM_POS[3].length - 137;
+      const a = (k / 23) * Math.PI * 2;
+      const idx = FORM_POS[3].length;
+      FORM_POS[3].push({ x: cx + Math.cos(a) * 145, y: cy + 65, z: Math.sin(a) * 115 });
+      if (k > 0) FORM_EDGES[3].push([idx - 1, idx]);
+    }
+
+    for (let i = 160; i < NUM_NODES; i++) {
+      const k = i - 160;
+      const ring = k < 45 ? 0 : 1;
+      const posInRing = ring === 0 ? k : k - 45;
+      const count = ring === 0 ? 45 : 35;
+      const a = (posInRing / count) * Math.PI * 2;
+      const R = ring === 0 ? 290 : 375;
+      FORM_POS[3].push({
+        x: cx + Math.cos(a) * R * 1.25,
+        y: cy - 75 + Math.sin(a) * R * 0.28,
+        z: Math.sin(a) * R
+      });
+      const base = ring === 0 ? 160 : 205;
+      FORM_EDGES[3].push([i, base + ((posInRing + 1) % count)]);
+      if (ring === 0 && posInRing % 5 === 0) {
+        FORM_EDGES[3].push([i, 160 + ((posInRing + 20) % 45)]);
+      }
+    }
+  }
+
+  // =========================================================================
+  // ACT V (Model 4, Wide 6-Pillar Hexagonal Crystal Colonade + Central Spiral Staircase):
+  // Spans wide (orbitR = 390 in X) so the 6 towering crystal pillars frame the
+  // gaps between Left, Center, and Right recruitment windows!
+  // =========================================================================
+  {
+    const cx = 0, cy = 20;
+    for (let p = 0; p < 6; p++) {
+      const pAngle = (p * Math.PI) / 3 + 0.35;
+      const px = cx + Math.cos(pAngle) * 395;
+      const pz = Math.sin(pAngle) * 240;
+      const pBase = p * 24;
+      const pHeight = 255;
+
+      for (let lvl = 0; lvl < 4; lvl++) {
+        const ly = cy + 140 - (lvl / 3) * pHeight;
+        const lRad = lvl === 3 ? 5 : 24;
+        for (let v = 0; v < 6; v++) {
+          const idx = pBase + lvl * 6 + v;
+          const va = (v * Math.PI) / 3;
+          FORM_POS[4].push({
+            x: px + Math.cos(va) * lRad,
+            y: ly,
+            z: pz + Math.sin(va) * lRad
+          });
+          const nextV = pBase + lvl * 6 + ((v + 1) % 6);
+          FORM_EDGES[4].push([idx, nextV]);
+          if (lvl < 3) {
+            FORM_EDGES[4].push([idx, pBase + (lvl + 1) * 6 + v]);
+          }
+        }
+      }
+    }
+
+    for (let step = 0; step < 48; step++) {
+      const base = 144 + step * 2;
+      const u = step / 47;
+      const a = u * Math.PI * 5;
+      const y = cy + 165 - u * 330;
+      const rInner = 45, rOuter = 135;
+      FORM_POS[4].push(
+        { x: cx + Math.cos(a) * rInner, y, z: Math.sin(a) * rInner },
+        { x: cx + Math.cos(a) * rOuter, y, z: Math.sin(a) * rOuter }
+      );
+      FORM_EDGES[4].push([base, base + 1]);
+      if (step < 47) {
+        FORM_EDGES[4].push([base, base + 2], [base + 1, base + 3]);
+      }
+    }
+  }
+
+  // =========================================================================
+  // ACT VI (Model 5, Grand Twin-Wing Star Gate Portal Arching Over the Finale):
+  // =========================================================================
+  {
+    const cy = -95;
+    for (let rIdx = 0; rIdx < 2; rIdx++) {
+      const rad = rIdx === 0 ? 75 : 108;
+      const base = rIdx * 40;
+      for (let k = 0; k < 40; k++) {
+        const idx = base + k;
+        const a = (k / 40) * Math.PI * 2;
+        FORM_POS[5].push({
+          x: Math.cos(a) * rad,
+          y: cy + Math.sin(a) * rad,
+          z: (rIdx === 0 ? -15 : 15)
+        });
+        FORM_EDGES[5].push([idx, base + ((k + 1) % 40)]);
+        if (rIdx === 0 && k % 2 === 0) {
+          FORM_EDGES[5].push([idx, 40 + k]);
+        }
+      }
+    }
+
+    for (let wing = 0; wing < 2; wing++) {
+      const dir = wing === 0 ? -1 : 1;
+      const wBase = 80 + wing * 80;
+      for (let f = 0; f < 8; f++) {
+        const fBase = wBase + f * 10;
+        const spreadAngle = (f - 3.5) * 0.14;
+        for (let s = 0; s < 10; s++) {
+          const idx = fBase + s;
+          const dist = 115 + s * 44;
+          const wx = dir * dist * Math.cos(spreadAngle);
+          const wy = cy + dist * Math.sin(spreadAngle) - Math.sin((s / 9) * Math.PI) * 42;
+          const wz = Math.sin(s * 0.4 + f * 0.5) * 45;
+          FORM_POS[5].push({ x: wx, y: wy, z: wz });
+          if (s < 9) FORM_EDGES[5].push([idx, idx + 1]);
+          if (f < 7 && s % 3 === 0) FORM_EDGES[5].push([idx, idx + 10]);
+        }
+      }
+    }
+  }
+})();
+
+// Ambient 3D Parallax Dust
+const DUST = [];
+for (let i = 0; i < 110; i++) {
+  const s1 = Math.sin(i * 19.19) * 10000;
+  const s2 = Math.sin(i * 73.73) * 10000;
+  const s3 = Math.sin(i * 37.37) * 10000;
+  DUST.push({
+    x: ((s1 - Math.floor(s1)) - 0.5) * 1600,
+    y: ((s2 - Math.floor(s2)) - 0.5) * 1000,
+    z: ((s3 - Math.floor(s3)) - 0.5) * 1200,
+    r: 0.8 + (i % 3) * 0.55,
+    c: PALETTE[i % 4]
+  });
+}
+
+function getCameraState(t) {
+  const w01 = smootherstep(5.4, 7.0, t);
+  const w12 = smootherstep(11.7, 13.3, t);
+  const w23 = smootherstep(19.7, 21.3, t);
+  const w34 = smootherstep(27.2, 28.8, t);
+  const w45 = smootherstep(33.2, 34.8, t);
+
+  let rotY = Math.sin(t * 0.35) * 0.12;
+  let rotX = 0.14;
+  let rotZ = Math.cos(t * 0.22) * 0.03;
+  let camDist = 520;
+
+  rotX = lerp(rotX, 0.08, w01 * (1 - w12));
+  rotY = lerp(rotY, Math.sin((t - 6.2) * 0.3) * 0.08, w01 * (1 - w12));
+
+  rotX = lerp(rotX, 0.15, w12 * (1 - w23));
+  rotY = lerp(rotY, Math.sin((t - 12.5) * 0.25) * 0.08, w12 * (1 - w23));
+
+  rotX = lerp(rotX, 0.18, w23 * (1 - w34));
+  rotY = lerp(rotY, Math.sin((t - 20.5) * 0.3) * 0.10, w23 * (1 - w34));
+
+  rotX = lerp(rotX, 0.18, w34 * (1 - w45));
+  rotY = lerp(rotY, Math.sin((t - 28.0) * 0.3) * 0.12, w34 * (1 - w45));
+
+  rotX = lerp(rotX, 0.12, w45);
+  rotY = lerp(rotY, Math.sin((t - 34.0) * 0.35) * 0.08, w45);
+
+  return {
+    rotX,
+    rotY,
+    rotZ,
+    camDist,
+    fov: Math.min(bgW, bgH) * 0.72,
+    cx: bgW * 0.5,
+    cy: bgH * 0.48
+  };
+}
+
+function projectPoint(pt, cam) {
+  const cosY = Math.cos(cam.rotY), sinY = Math.sin(cam.rotY);
+  const x1 = pt.x * cosY - pt.z * sinY;
+  const z1 = pt.z * cosY + pt.x * sinY;
+  const y1 = pt.y;
+
+  const cosX = Math.cos(cam.rotX), sinX = Math.sin(cam.rotX);
+  const y2 = y1 * cosX - z1 * sinX;
+  const z2 = z1 * cosX + y1 * sinX;
+  const x2 = x1;
+
+  const cosZ = Math.cos(cam.rotZ), sinZ = Math.sin(cam.rotZ);
+  const x3 = x2 * cosZ - y2 * sinZ;
+  const y3 = y2 * cosZ + x2 * sinZ;
+  const z3 = z2;
+
+  const depth = z3 + cam.camDist;
+  const safeDepth = Math.max(35, depth);
+  const scale = cam.fov / safeDepth;
+  return {
+    x: cam.cx + x3 * scale,
+    y: cam.cy + y3 * scale,
+    z: z3,
+    depth,
+    scale,
+    visible: depth > 40
+  };
+}
+
+function getAnimatedFormationNode(mIdx, i, t) {
+  const base = FORM_POS[mIdx][i];
+  if (mIdx === 0) {
+    const rot = t * (i < 72 ? -0.42 : 0.28);
+    const c = Math.cos(rot), s = Math.sin(rot);
+    return {
+      x: base.x * c - base.z * s,
+      y: base.y + Math.sin(t * 1.8 + i * 0.2) * 3,
+      z: base.z * c + base.x * s
+    };
+  }
+  if (mIdx === 1) {
+    if (i < 64) {
+      const lx = base.x + 340, ly = base.y + 125, lz = base.z;
+      const r1 = t * 0.55, r2 = t * 0.38;
+      const x1 = lx * Math.cos(r1) - lz * Math.sin(r1);
+      const z1 = lz * Math.cos(r1) + lx * Math.sin(r1);
+      const y1 = ly * Math.cos(r2) - z1 * Math.sin(r2);
+      const z2 = z1 * Math.cos(r2) + ly * Math.sin(r2);
+      return { x: -340 + x1, y: -125 + y1, z: z2 };
+    } else if (i < 136) {
+      return {
+        x: base.x,
+        y: base.y + Math.sin(t * 3.2 - base.x * 0.02) * 8,
+        z: base.z
+      };
+    } else {
+      const lx = base.x - 340, ly = base.y + 125;
+      const r = t * 0.45;
+      return {
+        x: 340 + lx * Math.cos(r) - ly * Math.sin(r),
+        y: -125 + ly * Math.cos(r) + lx * Math.sin(r),
+        z: base.z + Math.sin(t * 2.0 + i * 0.1) * 6
+      };
+    }
+  }
+  if (mIdx === 2) {
+    if (i >= 62 && i < 80) {
+      const towerX = -355, hubY = 15 - 95;
+      const lx = base.x - towerX, ly = base.y - hubY;
+      const spin = t * 1.8;
+      return {
+        x: towerX + lx * Math.cos(spin) - ly * Math.sin(spin),
+        y: hubY + ly * Math.cos(spin) + lx * Math.sin(spin),
+        z: base.z
+      };
+    } else if (i >= 80 && i < 160) {
+      const isTop = (i % 4 === 1 || i % 4 === 2);
+      const bar = Math.floor((i - 80) / 4);
+      const wave = isTop ? Math.sin(t * 3.0 + bar * 0.45) * 28 : 0;
+      return { x: base.x, y: base.y + wave, z: base.z };
+    } else if (i >= 160) {
+      const lx = base.x - 430, lz = base.z;
+      const spin = t * 0.75;
+      return {
+        x: 430 + lx * Math.cos(spin) - lz * Math.sin(spin),
+        y: base.y,
+        z: lz * Math.cos(spin) + lx * Math.sin(spin)
+      };
+    }
+    return base;
+  }
+  if (mIdx === 3) {
+    const lx = base.x - 45, lz = base.z;
+    const spin = i >= 160 ? t * 0.45 : Math.sin(t * 0.35) * 0.24;
+    return {
+      x: 45 + lx * Math.cos(spin) - lz * Math.sin(spin),
+      y: base.y,
+      z: lz * Math.cos(spin) + lx * Math.sin(spin)
+    };
+  }
+  if (mIdx === 4) {
+    const lx = base.x, lz = base.z;
+    const spin = (t - 28.0) * 0.32;
+    return {
+      x: lx * Math.cos(spin) - lz * Math.sin(spin),
+      y: base.y + Math.sin(t * 1.8 + (i % 6)) * 4,
+      z: lz * Math.cos(spin) + lx * Math.sin(spin)
+    };
+  }
+  if (mIdx === 5) {
+    if (i < 80) {
+      const lx = base.x, ly = base.y + 95;
+      const spin = t * 0.5;
+      return {
+        x: lx * Math.cos(spin) - ly * Math.sin(spin),
+        y: -95 + ly * Math.cos(spin) + lx * Math.sin(spin),
+        z: base.z
+      };
+    } else {
+      const flap = Math.sin(t * 1.6 + Math.abs(base.x) * 0.006) * 14;
+      return { x: base.x, y: base.y + flap, z: base.z };
+    }
+  }
+  return base;
+}
+
+const ACT_BOUNDS = [
+  { start: 0.0, end: 6.2 },
+  { start: 6.2, end: 12.5 },
+  { start: 12.5, end: 20.5 },
+  { start: 20.5, end: 28.0 },
+  { start: 28.0, end: 34.0 },
+  { start: 34.0, end: 38.0 }
+];
+
+function getActiveMorphPair(t) {
+  const halfMorph = 0.85;
+  for (let i = 0; i < ACT_BOUNDS.length; i++) {
+    const b = ACT_BOUNDS[i];
+    const nextIdx = (i + 1) % ACT_BOUNDS.length;
+    if (t >= b.end - halfMorph && t <= b.end + halfMorph) {
+      const m = smootherstep(b.end - halfMorph, b.end + halfMorph, t);
+      return { idxA: i, idxB: nextIdx, m };
+    }
+    if (t >= b.start && t < b.end - halfMorph) {
+      return { idxA: i, idxB: i, m: 0 };
+    }
+  }
+  return { idxA: 0, idxB: 0, m: 0 };
+}
+
+function renderBackground3D(t) {
+  bgCtx.clearRect(0, 0, bgW, bgH);
+  const cam = getCameraState(t);
+  const { idxA, idxB, m } = getActiveMorphPair(t);
+
+  // 1. Soft #00b3ff Moving Studio Glow
+  const blobs = [
+    {
+      x: bgW * (0.35 + 0.16 * Math.sin(t * 0.3)),
+      y: bgH * (0.32 + 0.12 * Math.cos(t * 0.25)),
+      r: Math.max(bgW, bgH) * 0.44,
+      c: "rgba(0, 179, 255, 0.11)"
+    },
+    {
+      x: bgW * (0.65 - 0.15 * Math.cos(t * 0.24)),
+      y: bgH * (0.55 + 0.12 * Math.sin(t * 0.32)),
+      r: Math.max(bgW, bgH) * 0.45,
+      c: "rgba(0, 225, 255, 0.09)"
+    }
+  ];
+  for (const b of blobs) {
+    const g = bgCtx.createRadialGradient(b.x, b.y, 10, b.x, b.y, b.r);
+    g.addColorStop(0, b.c);
+    g.addColorStop(1, "rgba(255, 255, 255, 0)");
+    bgCtx.fillStyle = g;
+    bgCtx.fillRect(0, 0, bgW, bgH);
+  }
+
+  // 2. Ambient 3D Parallax Dust
+  bgCtx.save();
+  for (let i = 0; i < DUST.length; i++) {
+    const d = DUST[i];
+    const zWrap = ((d.z - t * 55) % 1200 + 1200) % 1200 - 500;
+    const pr = projectPoint({ x: d.x, y: d.y, z: zWrap }, cam);
+    if (!pr.visible) continue;
+    const alpha = clamp((1 - (zWrap + 500) / 1200) * 0.38, 0.04, 0.40);
+    bgCtx.fillStyle = d.c;
+    bgCtx.globalAlpha = alpha;
+    bgCtx.beginPath();
+    bgCtx.arc(pr.x, pr.y, Math.max(0.8, d.r * pr.scale), 0, Math.PI * 2);
+    bgCtx.fill();
+  }
+  bgCtx.restore();
+
+  // 3. Project all 240 Sculptural Nodes
+  const projected = new Array(NUM_NODES);
+  for (let i = 0; i < NUM_NODES; i++) {
+    const pA = getAnimatedFormationNode(idxA, i, t);
+    const pB = idxA === idxB ? pA : getAnimatedFormationNode(idxB, i, t);
+    const pos3d = lerp3D(pA, pB, m);
+    const proj = projectPoint(pos3d, cam);
+    projected[i] = { idx: i, pos3d, proj, color: PALETTE[i % PALETTE.length] };
+  }
+
+  // 4. Draw Explicit Structural Wireframe Edges (Clean, Unmistakable Sculptures!)
+  const drawExplicitEdges = (mIdx, weight) => {
+    if (weight <= 0.02) return;
+    const edges = FORM_EDGES[mIdx];
+    bgCtx.lineWidth = 1.4;
+    for (let e = 0; e < edges.length; e++) {
+      const [u, v] = edges[e];
+      const pu = projected[u], pv = projected[v];
+      if (!pu || !pv || !pu.proj.visible || !pv.proj.visible) continue;
+
+      const alpha = clamp(0.46 * weight, 0.05, 0.48);
+      bgCtx.strokeStyle = e % 2 === 0
+        ? `rgba(0, 179, 255, ${alpha.toFixed(3)})`
+        : `rgba(0, 126, 194, ${alpha.toFixed(3)})`;
+      bgCtx.beginPath();
+      bgCtx.moveTo(pu.proj.x, pu.proj.y);
+      bgCtx.lineTo(pv.proj.x, pv.proj.y);
+      bgCtx.stroke();
+
+      if (e % 4 === 0 && weight > 0.4) {
+        const pulseU = (t * 0.8 + e * 0.17) % 1;
+        const px = lerp(pu.proj.x, pv.proj.x, pulseU);
+        const py = lerp(pu.proj.y, pv.proj.y, pulseU);
+        bgCtx.fillStyle = `rgba(0, 225, 255, ${(alpha * 1.9).toFixed(3)})`;
+        bgCtx.beginPath();
+        bgCtx.arc(px, py, 2.3, 0, Math.PI * 2);
+        bgCtx.fill();
+      }
+    }
+  };
+
+  if (idxA === idxB) {
+    drawExplicitEdges(idxA, 1.0);
+  } else {
+    drawExplicitEdges(idxA, 1.0 - m);
+    drawExplicitEdges(idxB, m);
+  }
+
+  // 5. Draw Glowing 3D Sculptural Vertices
+  const sorted = [...projected].sort((a, b) => b.proj.depth - a.proj.depth);
+  bgCtx.save();
+  for (let i = 0; i < sorted.length; i++) {
+    const item = sorted[i];
+    if (!item.proj.visible) continue;
+    const r = Math.max(1.7, 2.3 * item.proj.scale);
+    bgCtx.fillStyle = item.color;
+    bgCtx.globalAlpha = clamp(item.proj.scale * 0.92, 0.25, 0.96);
+    bgCtx.beginPath();
+    bgCtx.arc(item.proj.x, item.proj.y, r, 0, Math.PI * 2);
+    bgCtx.fill();
+
+    if (item.idx % 6 === 0) {
+      bgCtx.globalAlpha = 0.22;
+      bgCtx.beginPath();
+      bgCtx.arc(item.proj.x, item.proj.y, r * 2.7, 0, Math.PI * 2);
+      bgCtx.fill();
+    }
+  }
+  bgCtx.restore();
+
+  // 6. Subtle 2.5px Top Edge Aurora Time Thread
+  const progress = clamp(t / DURATION, 0, 1);
+  bgCtx.save();
+  const threadGrad = bgCtx.createLinearGradient(0, 0, bgW * progress, 0);
+  threadGrad.addColorStop(0.0, "rgba(0, 126, 194, 0.35)");
+  threadGrad.addColorStop(0.6, "rgba(0, 179, 255, 0.75)");
+  threadGrad.addColorStop(1.0, "rgba(0, 225, 255, 1.0)");
+  bgCtx.fillStyle = threadGrad;
+  bgCtx.fillRect(0, 0, bgW * progress, 2.5);
+  bgCtx.restore();
+}
+
+/* ============================================================================
+   MINI-CANVASES INSIDE FOREGROUND 3D WINDOWS (All 5 Project Canvases + UI Evo + IP Crest + 6-Axis Radar)
+   ============================================================================ */
+const uiEvoCanvas = document.getElementById('ui-evo-canvas');
+const uiEvoCtx = uiEvoCanvas.getContext('2d');
+
+function drawUiEvoCanvas(t) {
+  const w = uiEvoCanvas.width, h = uiEvoCanvas.height;
+  uiEvoCtx.clearRect(0, 0, w, h);
+  const morph = (Math.sin(t * 1.6) + 1) * 0.5;
+
+  for (let i = 0; i < 3; i++) {
+    const x = 18 + i * 84;
+    const y = 24 + Math.sin(t * 1.8 + i) * 4;
+    const cw = 72, ch = 78;
+    const radius = lerp(4, 16, morph);
+
+    uiEvoCtx.save();
+    uiEvoCtx.beginPath();
+    uiEvoCtx.roundRect(x, y, cw, ch, radius);
+    const grad = uiEvoCtx.createLinearGradient(x, y, x + cw, y + ch);
+    grad.addColorStop(0, i === 1 ? '#00b3ff' : '#ffffff');
+    grad.addColorStop(1, i === 1 ? '#00e1ff' : '#d8f3ff');
+    uiEvoCtx.fillStyle = grad;
+    uiEvoCtx.shadowColor = 'rgba(0, 179, 255, 0.22)';
+    uiEvoCtx.shadowBlur = lerp(2, 16, morph);
+    uiEvoCtx.fill();
+    uiEvoCtx.strokeStyle = 'rgba(0, 179, 255, 0.32)';
+    uiEvoCtx.lineWidth = 1.2;
+    uiEvoCtx.stroke();
+
+    uiEvoCtx.fillStyle = i === 1 ? '#ffffff' : '#00b3ff';
+    uiEvoCtx.beginPath();
+    uiEvoCtx.arc(x + cw * 0.5, y + 25, 9.5, 0, Math.PI * 2);
+    uiEvoCtx.fill();
+
+    uiEvoCtx.fillStyle = i === 1 ? 'rgba(255,255,255,0.88)' : 'rgba(0,179,255,0.48)';
+    uiEvoCtx.fillRect(x + 14, y + 46, cw - 28, 6);
+    uiEvoCtx.fillRect(x + 20, y + 58, cw - 40, 5);
+    uiEvoCtx.restore();
+  }
+}
+
+const pCanvases = [1, 2, 3, 4, 5].map(n => {
+  const c = document.getElementById(`proj-canvas-${n}`);
+  return { c, ctx: c.getContext('2d'), w: c.width, h: c.height };
+});
+
+function drawProjectCanvases(t) {
+  // P1: 星坡夏日研学之旅 [23SGJ]
+  {
+    const { ctx, w, h } = pCanvases[0];
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = 'rgba(0, 225, 255, 0.14)';
+    ctx.beginPath();
+    ctx.moveTo(0, h); ctx.lineTo(0, 66); ctx.lineTo(65, 36); ctx.lineTo(135, 70); ctx.lineTo(220, 32); ctx.lineTo(330, 62); ctx.lineTo(w, h);
+    ctx.closePath(); ctx.fill();
+
+    [38, 72, 105].forEach((tx, idx) => {
+      ctx.fillStyle = idx === 1 ? '#00e1ff' : '#00b3ff';
+      ctx.beginPath();
+      ctx.moveTo(tx, 40 - idx * 4); ctx.lineTo(tx - 12, 76); ctx.lineTo(tx + 12, 76);
+      ctx.closePath(); ctx.fill();
+    });
+
+    const wx = 265, wy = 46;
+    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(wx, wy); ctx.lineTo(wx, 86); ctx.stroke();
+    for (let b = 0; b < 3; b++) {
+      const ang = t * 2.2 + (b * Math.PI * 2) / 3;
+      ctx.beginPath(); ctx.moveTo(wx, wy); ctx.lineTo(wx + Math.cos(ang) * 21, wy + Math.sin(ang) * 21);
+      ctx.strokeStyle = '#00e1ff'; ctx.stroke();
+    }
+
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.beginPath(); ctx.moveTo(115, 66); ctx.quadraticCurveTo(185, 44, 255, 66); ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = '#ffffff'; ctx.font = 'bold 11px sans-serif';
+    ctx.fillText('✦ STAR-SLOPE ECO RESEARCH [23SGJ]', 16, 22);
+    ctx.fillStyle = '#7dd3fc';
+    ctx.fillText('森林公园 · 环保课题实地考察', 16, 96);
+  }
+
+  // P2: 西瓜传说 [22WGJ]
+  {
+    const { ctx, w, h } = pCanvases[1];
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = 'rgba(0, 179, 255, 0.22)';
+    ctx.fillRect(20, 80, 85, 10);
+    ctx.fillRect(125, 60, 80, 10);
+    ctx.fillRect(225, 40, 75, 10);
+    const jumpPhase = (t * 1.8) % 3;
+    const hx = 50 + jumpPhase * 75;
+    const hy = 63 - jumpPhase * 18 - Math.abs(Math.sin(t * 5.2)) * 22;
+    ctx.fillStyle = '#00b3ff';
+    ctx.beginPath(); ctx.roundRect(hx, hy, 18, 18, 5); ctx.fill();
+    ctx.fillStyle = '#00d9ff';
+    ctx.beginPath(); ctx.arc(260, 22 + Math.sin(t * 3) * 4, 7, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#007ec2'; ctx.font = 'bold 12px sans-serif';
+    ctx.fillText('2022 WINTER GAMEJAM · 1ST ANNIV', 20, 25);
+  }
+
+  // P3: Trackmaker [22SGJ]
+  {
+    const { ctx, w, h } = pCanvases[2];
+    ctx.clearRect(0, 0, w, h);
+    for (let i = 0; i < 22; i++) {
+      const x = 16 + i * 14;
+      const bh = 14 + Math.abs(Math.sin(t * 3.2 + i * 0.45)) * 58;
+      const grad = ctx.createLinearGradient(x, h - bh, x, h);
+      grad.addColorStop(0, '#00e1ff'); grad.addColorStop(1, '#00b3ff');
+      ctx.fillStyle = grad;
+      ctx.beginPath(); ctx.roundRect(x, h - bh - 10, 9, bh, 4); ctx.fill();
+    }
+    ctx.fillStyle = '#ffffff'; ctx.font = 'bold 12px sans-serif';
+    ctx.fillText('♪ TRACKMAKER // RHYTHM & ORBIT', 16, 24);
+  }
+
+  // P4: 演化 Evolution [24SGJ]
+  {
+    const { ctx, w, h } = pCanvases[3];
+    ctx.clearRect(0, 0, w, h);
+    const cx = w * 0.5, cy = h * 0.54;
+    for (let i = 0; i < 6; i++) {
+      const a = t * 1.1 + (i * Math.PI / 3);
+      const r = 22 + Math.sin(t * 1.6 + i) * 10;
+      const nx = cx + Math.cos(a) * r * 2.2;
+      const ny = cy + Math.sin(a) * r * 0.9;
+      ctx.strokeStyle = 'rgba(0, 179, 255, 0.38)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(nx, ny); ctx.stroke();
+      ctx.fillStyle = i % 2 === 0 ? '#00b3ff' : '#00d9ff';
+      ctx.beginPath(); ctx.arc(nx, ny, 7, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.fillStyle = '#007ec2';
+    ctx.beginPath(); ctx.arc(cx, cy, 11, 0, Math.PI * 2); ctx.fill();
+    ctx.font = 'bold 11px sans-serif';
+    ctx.fillText('EVOLUTION [24SGJ]', 16, 22);
+  }
+
+  // P5: Simplicity 4th Anniversary [25WGJ]
+  {
+    const { ctx, w, h } = pCanvases[4];
+    ctx.clearRect(0, 0, w, h);
+    const years = ['2021', '2022', '2023', '2024', '2025'];
+    ctx.strokeStyle = 'rgba(0, 225, 255, 0.5)';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(36, 54); ctx.lineTo(w - 36, 54); ctx.stroke();
+    years.forEach((yr, idx) => {
+      const x = 36 + idx * ((w - 72) / 4);
+      const pulse = Math.sin(t * 2.2 - idx * 0.7) * 3;
+      ctx.fillStyle = idx === 4 ? '#00e1ff' : '#00b3ff';
+      ctx.beginPath(); ctx.arc(x, 54, 6 + Math.max(0, pulse), 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(yr, x, 78);
+    });
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#7dd3fc'; ctx.font = 'bold 12px sans-serif';
+    ctx.fillText('✦ 4TH ANNIVERSARY MILESTONE [25WGJ]', 24, 25);
+  }
+}
+
+const ipCanvas = document.getElementById('ip-crest-canvas');
+const ipCtx = ipCanvas.getContext('2d');
+
+function drawIpCrest(t) {
+  const w = ipCanvas.width, h = ipCanvas.height;
+  const cx = w / 2, cy = h / 2;
+  ipCtx.clearRect(0, 0, w, h);
+  ipCtx.save();
+  ipCtx.translate(cx, cy);
+  ipCtx.rotate(t * 0.45);
+  ipCtx.strokeStyle = 'rgba(0, 225, 255, 0.6)';
+  ipCtx.lineWidth = 1.5;
+  ipCtx.beginPath(); ipCtx.arc(0, 0, 44, 0, Math.PI * 2); ipCtx.stroke();
+  for (let s = 0; s < 2; s++) {
+    ipCtx.rotate(Math.PI / 3);
+    ipCtx.beginPath();
+    for (let i = 0; i < 3; i++) {
+      const a = (i * Math.PI * 2) / 3;
+      const x = Math.cos(a) * 36, y = Math.sin(a) * 36;
+      if (i === 0) ipCtx.moveTo(x, y); else ipCtx.lineTo(x, y);
+    }
+    ipCtx.closePath();
+    ipCtx.strokeStyle = s === 0 ? '#00e1ff' : 'rgba(255,255,255,0.8)';
+    ipCtx.stroke();
+  }
+  ipCtx.restore();
+  ipCtx.fillStyle = '#00d9ff';
+  ipCtx.beginPath(); ipCtx.arc(cx, cy, 7 + Math.sin(t * 3) * 2, 0, Math.PI * 2); ipCtx.fill();
+}
+
+const radarCanvas = document.getElementById('radar-canvas');
+const radarCtx = radarCanvas.getContext('2d');
+const RADAR_LABELS = ['美术 UI', '音乐音效', '文案剧情', '程序算法', '策划机制', '协作管理'];
+
+function drawRecruitmentRadar(t) {
+  const w = radarCanvas.width, h = radarCanvas.height;
+  const cx = w / 2, cy = h / 2 + 4;
+  const maxR = 86;
+  radarCtx.clearRect(0, 0, w, h);
+
+  for (let ring = 1; ring <= 3; ring++) {
+    const r = (maxR / 3) * ring;
+    radarCtx.beginPath();
+    for (let i = 0; i < 6; i++) {
+      const a = (i * Math.PI) / 3 - Math.PI / 2;
+      const x = cx + Math.cos(a) * r;
+      const y = cy + Math.sin(a) * r;
+      if (i === 0) radarCtx.moveTo(x, y);
+      else radarCtx.lineTo(x, y);
+    }
+    radarCtx.closePath();
+    radarCtx.strokeStyle = 'rgba(0, 179, 255, 0.2)';
+    radarCtx.lineWidth = 1;
+    radarCtx.stroke();
+  }
+
+  const polyPts = [];
+  for (let i = 0; i < 6; i++) {
+    const a = (i * Math.PI) / 3 - Math.PI / 2;
+    const ax = cx + Math.cos(a) * maxR;
+    const ay = cy + Math.sin(a) * maxR;
+    radarCtx.beginPath();
+    radarCtx.moveTo(cx, cy);
+    radarCtx.lineTo(ax, ay);
+    radarCtx.strokeStyle = 'rgba(0, 179, 255, 0.24)';
+    radarCtx.stroke();
+
+    const pulse = 0.78 + 0.16 * Math.sin(t * 2.2 + i * 1.1);
+    const px = cx + Math.cos(a) * (maxR * pulse);
+    const py = cy + Math.sin(a) * (maxR * pulse);
+    polyPts.push([px, py]);
+
+    const lx = cx + Math.cos(a) * (maxR + 28);
+    const ly = cy + Math.sin(a) * (maxR + 18);
+    radarCtx.fillStyle = '#007ec2';
+    radarCtx.font = 'bold 12px sans-serif';
+    radarCtx.textAlign = 'center';
+    radarCtx.textBaseline = 'middle';
+    radarCtx.fillText(RADAR_LABELS[i], lx, ly);
+  }
+
+  radarCtx.beginPath();
+  polyPts.forEach(([px, py], i) => {
+    if (i === 0) radarCtx.moveTo(px, py);
+    else radarCtx.lineTo(px, py);
+  });
+  radarCtx.closePath();
+  radarCtx.fillStyle = 'rgba(0, 179, 255, 0.20)';
+  radarCtx.fill();
+  radarCtx.strokeStyle = '#00b3ff';
+  radarCtx.lineWidth = 2.2;
+  radarCtx.stroke();
+
+  polyPts.forEach(([px, py]) => {
+    radarCtx.beginPath();
+    radarCtx.arc(px, py, 4.5, 0, Math.PI * 2);
+    radarCtx.fillStyle = '#00d9ff';
+    radarCtx.fill();
+    radarCtx.strokeStyle = '#ffffff';
+    radarCtx.lineWidth = 1.5;
+    radarCtx.stroke();
+  });
+}
+
+/* ============================================================================
+   FOREGROUND 3D CAMERA & MULTI-WINDOW CHOREOGRAPHY
+   ============================================================================ */
+const actEls = [
+  document.getElementById('act-1'),
+  document.getElementById('act-2'),
+  document.getElementById('act-3'),
+  document.getElementById('act-4'),
+  document.getElementById('act-5'),
+  document.getElementById('act-6')
+];
+
+const winRefs = {
+  a1Main: document.getElementById('a1-main'),
+  a1Chips: [
+    document.getElementById('a1-chip1'),
+    document.getElementById('a1-chip2'),
+    document.getElementById('a1-chip3')
+  ],
+  a2Wins: [
+    document.getElementById('a2-left'),
+    document.getElementById('a2-center'),
+    document.getElementById('a2-right')
+  ],
+  a3Wins: [
+    document.getElementById('a3-p1'),
+    document.getElementById('a3-p2'),
+    document.getElementById('a3-p3'),
+    document.getElementById('a3-p4'),
+    document.getElementById('a3-p5')
+  ],
+  a4Wins: [
+    document.getElementById('a4-ip'),
+    document.getElementById('a4-oss'),
+    document.getElementById('a4-team')
+  ],
+  a5Wins: [
+    document.getElementById('a5-left'),
+    document.getElementById('a5-center'),
+    document.getElementById('a5-right')
+  ],
+  a6Main: document.getElementById('a6-main'),
+  a6Ctas: [
+    document.getElementById('a6-cta1'),
+    document.getElementById('a6-cta2'),
+    document.getElementById('a6-cta3')
+  ],
+  a6Sats: [
+    document.getElementById('a6-sat1'),
+    document.getElementById('a6-sat2'),
+    document.getElementById('a6-sat3'),
+    document.getElementById('a6-sat4')
+  ]
+};
+
+function applySceneWindowEnvelope(el, t, start, end, enterDur = 1.0, exitDur = 0.9) {
+  const s = start - 0.35;
+  const e = end + 0.35;
+  if (t < s || t > e) {
+    el.style.opacity = '0';
+    el.style.visibility = 'hidden';
+    return 0;
+  }
+  el.style.visibility = 'visible';
+
+  let opacity = 1;
+  let zOffset = 0;
+  let rx = 0, ry = 0;
+
+  if (t < start + enterDur) {
+    const p = easeOutCubic(norm(t, s, start + enterDur));
+    opacity = p;
+    zOffset = lerp(-420, 0, p);
+    rx = lerp(12, 0, p);
+    ry = lerp(-10, 0, p);
+  } else if (t > end - exitDur && end < 37.9) {
+    const p = easeInCubic(norm(t, end - exitDur, e));
+    opacity = 1 - p;
+    zOffset = lerp(0, 380, p);
+    rx = lerp(0, -10, p);
+    ry = lerp(0, 10, p);
+  } else if (end >= 37.9 && t > 37.2) {
+    const p = smootherstep(37.2, 38.0, t);
+    opacity = 1 - p;
+    zOffset = lerp(0, 320, p);
+  }
+
+  el.style.opacity = opacity.toFixed(3);
+  el.style.transform = `translate3d(0px, 0px, ${zOffset.toFixed(1)}px) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg)`;
+  return opacity;
+}
+
+function updateForegroundChoreography(t) {
+  const rigRx = Math.sin(t * 0.28) * 1.8;
+  const rigRy = Math.cos(t * 0.22) * 2.4;
+  cameraRig.style.transform = `scale(${viewportScale.toFixed(3)}) rotateX(${rigRx.toFixed(2)}deg) rotateY(${rigRy.toFixed(2)}deg)`;
+
+  ACT_BOUNDS.forEach((w, idx) => {
+    applySceneWindowEnvelope(actEls[idx], t, w.start, w.end);
+  });
+
+  // Act 1
+  if (t <= 6.6) {
+    const mainP = easeOutBack(norm(t, 0.0, 1.3));
+    const floatY = Math.sin(t * 1.4) * 5;
+    winRefs.a1Main.style.transform = `translate3d(0px, ${((1 - mainP) * 30 + floatY).toFixed(1)}px, ${(mainP * 45).toFixed(1)}px)`;
+
+    shardEls.forEach((path, idx) => {
+      const sv = shardVectors[idx];
+      const sp = easeOutBack(norm(t, sv.delay, sv.delay + 1.5));
+      const tx = lerp(sv.tx, 0, sp);
+      const ty = lerp(sv.ty, 0, sp);
+      const rz = lerp(sv.rz, 0, sp);
+      const sc = lerp(0.2, 1, sp);
+      path.style.opacity = clamp(sp * 1.2, 0, 1).toFixed(2);
+      path.style.transform = `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px) rotate(${rz.toFixed(1)}deg) scale(${sc.toFixed(2)})`;
+    });
+
+    winRefs.a1Chips.forEach((chip, i) => {
+      const cp = easeOutBack(norm(t, 0.5 + i * 0.2, 1.7 + i * 0.2));
+      const cFloatY = Math.sin(t * 1.5 + i * 2.0) * 6;
+      const tiltY = (i === 0 ? 12 : i === 1 ? -12 : 0);
+      chip.style.opacity = clamp(cp, 0, 1).toFixed(2);
+      chip.style.transform = `translate3d(0px, ${((1 - cp) * 55 + cFloatY).toFixed(1)}px, ${(cp * 40).toFixed(1)}px) rotateY(${tiltY}deg)`;
+    });
+  }
+
+  // Act 2
+  if (t >= 5.8 && t <= 12.9) {
+    const localT = t - 6.2;
+    const tilts = [14, 0, -14];
+    const zDepths = [35, 70, 35];
+    winRefs.a2Wins.forEach((w, i) => {
+      const wp = easeOutBack(norm(localT, i * 0.16, 1.1 + i * 0.16));
+      const fy = Math.sin(t * 1.4 + i * 1.7) * 5;
+      w.style.transform = `translate3d(0px, ${((1 - wp) * 55 + fy).toFixed(1)}px, ${(wp * zDepths[i]).toFixed(1)}px) rotateY(${tilts[i]}deg)`;
+    });
+  }
+
+  // Act 3
+  if (t >= 12.1 && t <= 20.9) {
+    const localT = t - 12.5;
+    const tiltsY = [14, 0, -14, 9, -9];
+    const zVals = [30, 65, 30, 50, 50];
+    winRefs.a3Wins.forEach((w, i) => {
+      const wp = easeOutBack(norm(localT, i * 0.14, 1.05 + i * 0.14));
+      const fy = Math.sin(t * 1.5 + i * 1.3) * 5;
+      w.style.transform = `translate3d(0px, ${((1 - wp) * 65 + fy).toFixed(1)}px, ${(wp * zVals[i]).toFixed(1)}px) rotateY(${tiltsY[i]}deg)`;
+    });
+  }
+
+  // Act 4
+  if (t >= 20.1 && t <= 28.4) {
+    const localT = t - 20.5;
+    const tiltsY = [11, 11, -9];
+    const zVals = [45, 35, 60];
+    winRefs.a4Wins.forEach((w, i) => {
+      const wp = easeOutBack(norm(localT, i * 0.16, 1.1 + i * 0.16));
+      const fy = Math.sin(t * 1.4 + i * 1.6) * 5;
+      w.style.transform = `translate3d(0px, ${((1 - wp) * 60 + fy).toFixed(1)}px, ${(wp * zVals[i]).toFixed(1)}px) rotateY(${tiltsY[i]}deg)`;
+    });
+  }
+
+  // Act 5
+  if (t >= 27.6 && t <= 34.4) {
+    const localT = t - 28.0;
+    const tiltsY = [15, 0, -15];
+    const zVals = [35, 75, 35];
+    winRefs.a5Wins.forEach((w, i) => {
+      const wp = easeOutBack(norm(localT, i * 0.16, 1.05 + i * 0.16));
+      const fy = Math.sin(t * 1.5 + i * 1.5) * 5;
+      w.style.transform = `translate3d(0px, ${((1 - wp) * 60 + fy).toFixed(1)}px, ${(wp * zVals[i]).toFixed(1)}px) rotateY(${tiltsY[i]}deg)`;
+    });
+  }
+
+  // Act 6
+  if (t >= 33.6) {
+    const localT = t - 34.0;
+    const wp = easeOutBack(norm(localT, 0, 1.05));
+    const fy = Math.sin(t * 1.4) * 4;
+    winRefs.a6Main.style.transform = `translate3d(0px, ${((1 - wp) * 45 + fy).toFixed(1)}px, ${(wp * 60).toFixed(1)}px)`;
+
+    const ctaTilts = [10, 0, -10];
+    winRefs.a6Ctas.forEach((card, i) => {
+      const cp = easeOutBack(norm(localT, 0.15 + i * 0.12, 1.05 + i * 0.12));
+      const cfy = Math.sin(t * 1.6 + i) * 4;
+      card.style.opacity = clamp(cp, 0, 1).toFixed(2);
+      card.style.transform = `translate3d(0px, ${((1 - cp) * 50 + cfy).toFixed(1)}px, ${(cp * 45).toFixed(1)}px) rotateY(${ctaTilts[i]}deg)`;
+    });
+
+    const satTilts = [14, -14, 14, -14];
+    winRefs.a6Sats.forEach((sat, i) => {
+      const sp = easeOutBack(norm(localT, 0.2 + i * 0.1, 1.1 + i * 0.1));
+      const sfy = Math.sin(t * 1.7 + i * 1.6) * 5;
+      sat.style.opacity = clamp(sp, 0, 1).toFixed(2);
+      sat.style.transform = `translate3d(0px, ${((1 - sp) * 55 + sfy).toFixed(1)}px, ${(sp * 80).toFixed(1)}px) rotateY(${satTilts[i]}deg)`;
+    });
+  }
+}
+
+/* ============================================================================
+   MASTER LOOP
+   ============================================================================ */
+const urlParams = new URLSearchParams(window.location.search);
+const fixedTimeParam = urlParams.get('t');
+const startTime = performance.now();
+
+function tick(now) {
+  let elapsed = ((now - startTime) / 1000) % DURATION;
+  if (fixedTimeParam !== null && !isNaN(parseFloat(fixedTimeParam))) {
+    elapsed = clamp(parseFloat(fixedTimeParam), 0, DURATION - 0.01);
+  }
+
+  updateCaptions(elapsed);
+  renderBackground3D(elapsed);
+  updateForegroundChoreography(elapsed);
+
+  if (elapsed >= 5.8 && elapsed <= 12.9) drawUiEvoCanvas(elapsed);
+  if (elapsed >= 12.1 && elapsed <= 20.9) drawProjectCanvases(elapsed);
+  if (elapsed >= 20.1 && elapsed <= 28.4) drawIpCrest(elapsed);
+  if (elapsed >= 27.6 && elapsed <= 34.4) drawRecruitmentRadar(elapsed);
+
+  requestAnimationFrame(tick);
+}
+
+window.addEventListener('load', () => {
+  requestAnimationFrame(tick);
+});
+</script>
+</body>
+</html>
